@@ -23,4 +23,9 @@ SUBDIRS := \
 Core/Src \
 Core/Startup \
 Drivers/STM32F4xx_HAL_Driver/Src \
+ECUAL/BUTTONS \
+ECUAL/DC_MOTOR \
+ECUAL/SERVO \
+MATH/FIR \
+MATH \
 

@@ -9,10 +9,14 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include MATH/FIR/subdir.mk
+-include MATH/subdir.mk
+-include ECUAL/SERVO/subdir.mk
+-include ECUAL/DC_MOTOR/subdir.mk
+-include ECUAL/BUTTONS/subdir.mk
 -include Drivers/STM32F4xx_HAL_Driver/Src/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
--include subdir.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -61,8 +65,8 @@ all: main-build
 main-build: RobonAUT.elf secondary-outputs
 
 # Tool invocations
-RobonAUT.elf: $(OBJS) $(USER_OBJS) E:\Workspaces\STM32CubeIDE\workspace_1.7.0\test1\STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "RobonAUT.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\Workspaces\STM32CubeIDE\workspace_1.7.0\test1\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="RobonAUT.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+RobonAUT.elf: $(OBJS) $(USER_OBJS) E:\Workspaces\STM32CubeIDE\workspace_1.7.0\LK_Bulls_Software\RobonAUT\STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "RobonAUT.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\Workspaces\STM32CubeIDE\workspace_1.7.0\LK_Bulls_Software\RobonAUT\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="RobonAUT.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -83,7 +87,7 @@ RobonAUT.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 
 # Other Targets
 clean:
-	-$(RM) $(SIZE_OUTPUT)$(OBJDUMP_LIST)$(EXECUTABLES)$(OBJS)$(S_DEPS)$(S_UPPER_DEPS)$(C_DEPS)$(OBJCOPY_BIN) RobonAUT.elf
+	-$(RM) RobonAUT.bin RobonAUT.elf RobonAUT.list default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_BIN)
@@ -95,6 +99,6 @@ fail-specified-linker-script-missing:
 warn-no-linker-script-specified:
 	@echo 'Warning: No linker script specified. Check the linker settings in the build configuration.'
 
-.PHONY: all clean dependents fail-specified-linker-script-missing warn-no-linker-script-specified
+.PHONY: all clean dependents main-build fail-specified-linker-script-missing warn-no-linker-script-specified
 
 -include ../makefile.targets

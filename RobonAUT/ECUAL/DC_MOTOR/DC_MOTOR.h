@@ -27,26 +27,22 @@
 #define DC_MOTOR_F_PWM    500
 
 // The Number OF DC MOTORs To Be Used In The Project
-#define DC_MOTOR_UNITS  1
+#define DC_MOTOR_UNITS  2	//igazabol 1 motor, csak 2 pwm jelet kap
 
 typedef struct
 {
-	GPIO_TypeDef * DIR1_GPIO;
-	GPIO_TypeDef * DIR2_GPIO;
-	uint16_t       DIR1_PIN;
-	uint16_t       DIR2_PIN;
-	TIM_TypeDef*   TIM_Instance;
-	uint32_t       PWM_TIM_CH;
-	uint16_t       TIM_CLK_MHz;
-	uint32_t       PWM_FREQ_Hz;
-	uint8_t        PWM_RES_BITS;
+	TIM_TypeDef*   	TIM_Instance;
+	uint32_t       	PWM_TIM_CH;
+	uint16_t       	TIM_CLK_MHz;
+	uint32_t       	PWM_FREQ_Hz;
+	uint8_t         PWM_RES_BITS;
 }DC_MOTOR_CfgType;
 
 
 /*-----[ Prototypes For All Functions ]-----*/
 
 void DC_MOTOR_Init(uint8_t au8_MOTOR_Instance);
-void DC_MOTOR_Start(uint8_t au8_MOTOR_Instance, uint8_t au8_DIR, uint16_t au16_SPEED);
+void DC_MOTOR_Start(uint8_t au8_MOTOR_Instance, uint16_t au16_SPEED);
 void DC_MOTOR_Set_Speed(uint8_t au8_MOTOR_Instance, uint16_t au16_SPEED);
 void DC_MOTOR_Set_Dir(uint8_t au8_MOTOR_Instance, uint8_t au8_DIR);
 void DC_MOTOR_Stop(uint8_t au8_MOTOR_Instance);
