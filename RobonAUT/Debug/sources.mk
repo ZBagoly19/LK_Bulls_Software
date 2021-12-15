@@ -23,9 +23,8 @@ SUBDIRS := \
 Core/Src \
 Core/Startup \
 Drivers/STM32F4xx_HAL_Driver/Src \
-ECUAL/BUTTONS \
-ECUAL/DC_MOTOR \
-ECUAL/SERVO \
+Drivers/VL53L1X/core/src \
+Drivers/VL53L1X/platform/src \
 MATH/FIR \
-MATH \
+util \
 

@@ -22,7 +22,7 @@ const SERVO_CfgType SERVO_CfgParam[SERVO_NUM] =
 		&TIM12->CCR2,
 		TIM_CHANNEL_2,
 		72000000,
-		0.65,
-		2.32
+		0.75,
+		2.3
 	}
 };

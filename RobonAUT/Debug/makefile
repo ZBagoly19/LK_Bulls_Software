@@ -9,11 +9,10 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include util/subdir.mk
 -include MATH/FIR/subdir.mk
--include MATH/subdir.mk
--include ECUAL/SERVO/subdir.mk
--include ECUAL/DC_MOTOR/subdir.mk
--include ECUAL/BUTTONS/subdir.mk
+-include Drivers/VL53L1X/platform/src/subdir.mk
+-include Drivers/VL53L1X/core/src/subdir.mk
 -include Drivers/STM32F4xx_HAL_Driver/Src/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk

@@ -24,6 +24,9 @@
 /* USER CODE BEGIN Includes */
 #include "string.h"
 #include "stdio.h"
+#include "../ECUAL/SERVO/SERVO.h"
+#include "../ECUAL/SERVO/SERVO.c"
+#include "vl53l1_api.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -33,7 +36,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define	SZERVO	0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -42,9 +45,9 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-I2C_HandleTypeDef hi2c1;
-I2C_HandleTypeDef hi2c2;
-I2C_HandleTypeDef hi2c3;
+I2C_HandleTypeDef hi2c1;	//tavolsagszenzor
+I2C_HandleTypeDef hi2c2;	//tavolsagszenzor
+I2C_HandleTypeDef hi2c3;	//tavolsagszenzor
 
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
@@ -52,28 +55,34 @@ SPI_HandleTypeDef hspi3;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim4;	//bluetoothnak idozito
 TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim12;
 
-UART_HandleTypeDef huart4;
-UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart4;	//bluetooth
+UART_HandleTypeDef huart1;	//thunderboard
+UART_HandleTypeDef huart2;	//gyarilag foglalt USB
 
 /* USER CODE BEGIN PV */
 int bluetooth_flag = 0;
 int bluetooth_j = 0;
 int bluetooth_a = 0;
 
+//Bluetooth send
 uint8_t bluetooth_rx;
-char bluetooth_str1[60]={0};
+char bluetooth_str1[60] = {0};
 int kivant_sebesseg = -1;
 char kanyarban_vagy_egyenes = '_';
+char sc_vagy_gyorskor = '_';
+int bluetooth_len = 0;
+//Bluetooth receive
+char bluetooth_buffer[100] = {0};
+int bluetooth_i = 0;
 
-int bluetooth_len;
-char bluetooth_buffer[100];
-
-int bluetooth_i;
+//Tavolsagszenzor I2C addresses of GPIO expanders on the X-NUCLEO-53L1A1
+/*ezek nem jok
+#define EXPANDER_1_ADDR 0x84 // 0x42 << 1
+#define EXPANDER_2_ADDR 0x86 // 0x43 << 1*/
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,7 +110,7 @@ static void MX_TIM2_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	if(huart == &huart4)
+	if(huart == &huart2)
 	{
 		//erosen kerdeses
 		if(bluetooth_rx == 0x0A)
@@ -109,17 +118,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		bluetooth_str1[bluetooth_a] = bluetooth_rx;
 		bluetooth_a++;
 	}
-	HAL_UART_Receive_IT(&huart4, &bluetooth_rx, 1);
+	HAL_UART_Receive_IT(&huart2, &bluetooth_rx, 1);
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	if(htim == &htim4)
+	if(htim == &htim2)
 	{
 		//itt kell kiirni amire kivancsiak vagyunk a stringben
-		sprintf(bluetooth_buffer, "%i -edik uzenet \t kivant sebesseg: %i \t kanyar/egyenes: %c\r\n", bluetooth_i, kivant_sebesseg, kanyarban_vagy_egyenes);
+		sprintf(bluetooth_buffer, "%i -edik uzenet \t kivant sebesseg: %i \t allapot: %c kanyar/egyenes: %c \r\n",
+				bluetooth_i, kivant_sebesseg, sc_vagy_gyorskor, kanyarban_vagy_egyenes);
 		bluetooth_i++;
 		bluetooth_len = strlen(bluetooth_buffer);
-		HAL_UART_Transmit(&huart4, bluetooth_buffer, bluetooth_len, 100);
+		HAL_UART_Transmit(&huart2, bluetooth_buffer, bluetooth_len, 100);
 	}
 }
 /* USER CODE END 0 */
@@ -131,7 +141,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  uint8_t buff[50];
+  VL53L1_RangingMeasurementData_t RangingData;
+  VL53L1_Dev_t  vl53l1_c; // center module
+  VL53L1_DEV    Dev = &vl53l1_c;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -167,16 +180,27 @@ int main(void)
   MX_TIM12_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_Receive_IT(&huart4, &bluetooth_rx, 1);
+  SERVO_Init(SZERVO);
+  HAL_UART_Receive_IT(&huart2, &bluetooth_rx, 1);
   HAL_TIM_Base_Start_IT(&htim2);
+
+  // initialize vl53l1x communication parameters
+  Dev->I2cHandle = &hi2c1;
+  Dev->I2cDevAddr = 0x52;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	//Bluetooth iras/olvasas logika
-	//HC05 Module-ban van puska
+	  //Bluetooth iras/olvasas logika
+	  //HC05 Module-ban van puska
+
+	  //Szervo
+	  SERVO_MoveTo(SZERVO, 30.0);
+	  HAL_Delay(1000);
+	  SERVO_MoveTo(SZERVO, 150);
+	  HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
