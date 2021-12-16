@@ -25,6 +25,8 @@ Core/Startup \
 Drivers/STM32F4xx_HAL_Driver/Src \
 Drivers/VL53L1X/core/src \
 Drivers/VL53L1X/platform/src \
+ECUAL/BUTTONS \
+ECUAL/DC_MOTOR \
 MATH/FIR \
 util \
 

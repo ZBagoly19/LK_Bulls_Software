@@ -12,7 +12,7 @@
 
 #include "../DC_MOTOR/DC_MOTOR.h"
 #include "../DC_MOTOR/DC_MOTOR_cfg.h"
-#include "E:/Workspaces/STM32CubeIDE/workspace_1.7.0/LK_Bulls_Software/RobonAUT/Core/Inc/main.h"
+#include "../Core/Inc/main.h"
 
 void DC_MOTOR_Init(uint8_t au8_MOTOR_Instance)
 {

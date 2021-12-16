@@ -13,7 +13,7 @@
 #include "SERVO.h"
 #include "SERVO_cfg.h"
 #include "SERVO_cfg.c"
-#include "E:/Workspaces/STM32CubeIDE/workspace_1.7.0/LK_Bulls_Software/RobonAUT/util/DWT_Delay.h"
+#include "../util/DWT_Delay.h"
 
 typedef struct
 {
@@ -26,7 +26,7 @@ static SERVO_info gs_SERVO_info[SERVO_NUM] = {0};
 
 void SERVO_Init(uint16_t au16_SERVO_Instance)
 {
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	//GPIO_InitTypeDef GPIO_InitStruct = {0};
 	TIM_ClockConfigTypeDef sClockSourceConfig = {0};
     TIM_MasterConfigTypeDef sMasterConfig = {0};
     TIM_OC_InitTypeDef sConfigOC = {0};
@@ -36,7 +36,7 @@ void SERVO_Init(uint16_t au16_SERVO_Instance)
     DWT_Delay_Init();
 
 	/*--------[ Configure The Servo PWM GPIO Pin ]-------*/
-
+    /*
     if(SERVO_CfgParam[au16_SERVO_Instance].SERVO_GPIO == GPIOA)
     {
     	__HAL_RCC_GPIOA_CLK_ENABLE();
@@ -61,19 +61,21 @@ void SERVO_Init(uint16_t au16_SERVO_Instance)
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(SERVO_CfgParam[au16_SERVO_Instance].SERVO_GPIO, &GPIO_InitStruct);
-
+*/
 	/*--------[ Calculate The PSC & ARR Values To Maximize PWM Resolution ]-------*/
 
 	/* Those Equations Sets The F_pwm = 50Hz & Maximizes The Resolution*/
 	PSC_Value = (uint32_t) (SERVO_CfgParam[au16_SERVO_Instance].TIM_CLK / 3276800.0);
 	ARR_Value = (uint32_t) ((SERVO_CfgParam[au16_SERVO_Instance].TIM_CLK / (50.0*(PSC_Value+1.0)))-1.0);
+	PSC_Value = 19;
+	ARR_Value = 49999;
 
 	/*--------[ Configure The Servo PWM Timer Channel ]-------*/
 
 	/*--[Check The Timer & Enable Its Clock]--*/
-	if(SERVO_CfgParam[au16_SERVO_Instance].TIM_Instance == TIM1)
+	if(SERVO_CfgParam[au16_SERVO_Instance].TIM_Instance == TIM12)
 	{
-		__HAL_RCC_TIM1_CLK_ENABLE();
+		__HAL_RCC_TIM12_CLK_ENABLE();
 	}
 	else if(SERVO_CfgParam[au16_SERVO_Instance].TIM_Instance == TIM2)
 	{
@@ -115,6 +117,7 @@ void SERVO_Init(uint16_t au16_SERVO_Instance)
 	/*--------[ Start The PWM Channel ]-------*/
 
 	HAL_TIM_PWM_Start(&htim, SERVO_CfgParam[au16_SERVO_Instance].PWM_TIM_CH);
+
 }
 
 /* Moves A Specific Motor To A Specific Degree That Can Be Float Number */
