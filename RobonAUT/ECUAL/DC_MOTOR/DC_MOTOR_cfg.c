@@ -22,7 +22,7 @@ const DC_MOTOR_CfgType DC_MOTOR_CfgParam[DC_MOTOR_UNITS] =
 		DC_MOTOR_F_PWM,
 		DC_MOTOR_PWM_RES
 	},
-    // PWM 1 Configurations
+    // PWM 2 Configurations
 	{
 		TIM8,
 		TIM_CHANNEL_2,	//PIN_40 on C7
