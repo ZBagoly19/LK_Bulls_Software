@@ -36,6 +36,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  d:\program\ files\programok\stm32\workspace\lk_bulls_software\robonaut\ecual\servo\SERVO_cfg.h \
  d:\program\ files\programok\stm32\workspace\lk_bulls_software\robonaut\ecual\servo\SERVO_cfg.c \
  d:\program\ files\programok\stm32\workspace\lk_bulls_software\robonaut\util\dwt_delay.h \
+ d:\program\ files\programok\stm32\workspace\lk_bulls_software\robonaut\ecual\dc_motor\dc_motor.h \
  D:/Program\ Files/Programok/STM32/WorkSpace/LK_Bulls_Software/RobonAUT/Drivers/VL53L1X/core/inc/vl53l1_api.h \
  D:/Program\ Files/Programok/STM32/WorkSpace/LK_Bulls_Software/RobonAUT/Drivers/VL53L1X/core/inc/vl53l1_api_strings.h \
  D:/Program\ Files/Programok/STM32/WorkSpace/LK_Bulls_Software/RobonAUT/Drivers/VL53L1X/core/inc/vl53l1_def.h \
@@ -132,6 +133,8 @@ d:\program\ files\programok\stm32\workspace\lk_bulls_software\robonaut\ecual\ser
 d:\program\ files\programok\stm32\workspace\lk_bulls_software\robonaut\ecual\servo\SERVO_cfg.c:
 
 d:\program\ files\programok\stm32\workspace\lk_bulls_software\robonaut\util\dwt_delay.h:
+
+d:\program\ files\programok\stm32\workspace\lk_bulls_software\robonaut\ecual\dc_motor\dc_motor.h:
 
 D:/Program\ Files/Programok/STM32/WorkSpace/LK_Bulls_Software/RobonAUT/Drivers/VL53L1X/core/inc/vl53l1_api.h:
 

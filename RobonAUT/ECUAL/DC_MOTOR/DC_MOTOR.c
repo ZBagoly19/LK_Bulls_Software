@@ -67,6 +67,7 @@ void DC_MOTOR_Init(uint8_t au8_MOTOR_Instance)
 void DC_MOTOR_Start(uint8_t au8_MOTOR_Instance, uint16_t au16_SPEED)
 {
 	/* Write The Speed Value To The PWM CH DutyCycle Register */
+	//1023 MAX
 	if(DC_MOTOR_CfgParam[au8_MOTOR_Instance].PWM_TIM_CH == TIM_CHANNEL_1)
 	{
 		DC_MOTOR_CfgParam[au8_MOTOR_Instance].TIM_Instance->CCR1 = au16_SPEED;
@@ -88,6 +89,7 @@ void DC_MOTOR_Start(uint8_t au8_MOTOR_Instance, uint16_t au16_SPEED)
 void DC_MOTOR_Set_Speed(uint8_t au8_MOTOR_Instance, uint16_t au16_SPEED)
 {
 	/* Write The Speed Value To The PWM CH DutyCycle Register */
+	//1023 MAX
 	if(DC_MOTOR_CfgParam[au8_MOTOR_Instance].PWM_TIM_CH == TIM_CHANNEL_1)
 	{
 		DC_MOTOR_CfgParam[au8_MOTOR_Instance].TIM_Instance->CCR1 = au16_SPEED;

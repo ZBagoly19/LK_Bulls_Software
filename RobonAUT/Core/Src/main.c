@@ -26,6 +26,7 @@
 #include "stdio.h"
 #include "../ECUAL/SERVO/SERVO.h"
 #include "../ECUAL/SERVO/SERVO.c"
+#include "../ECUAL/DC_MOTOR/DC_MOTOR.h"
 #include "vl53l1_api.h"
 /* USER CODE END Includes */
 
@@ -36,7 +37,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define	SZERVO	0
+#define DC_MOTOR_PWM1 0
+#define DC_MOTOR_PWM2 1
+#define	SZERVO 0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -184,6 +187,11 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   SERVO_Init(SZERVO);
+  DC_MOTOR_Init(DC_MOTOR_PWM1);
+  DC_MOTOR_Init(DC_MOTOR_PWM2);
+  DC_MOTOR_Start(DC_MOTOR_PWM1, 0);
+  DC_MOTOR_Start(DC_MOTOR_PWM2, 0);
+
   HAL_UART_Receive_IT(&huart2, &bluetooth_rx, 1);
   HAL_TIM_Base_Start_IT(&htim2);
 
@@ -214,8 +222,11 @@ int main(void)
 		  HAL_Delay(2000);
 		  SERVO_MoveTo(SZERVO, 130);
 		  HAL_Delay(2000);
-	  }
 
+
+		  DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, 500); //ha pwm1 nagyobb, előremenet
+		  DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, 100);
+	  }
 
   }
   /* USER CODE END 3 */
@@ -652,11 +663,11 @@ static void MX_TIM8_Init(void)
   /* USER CODE END TIM8_Init 1 */
   htim8.Instance = TIM8;
   htim8.Init.Prescaler = 0;
-  htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim8.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED3;
   htim8.Init.Period = 65535;
   htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim8.Init.RepetitionCounter = 0;
-  htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim8) != HAL_OK)
   {
     Error_Handler();
