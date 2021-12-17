@@ -52,7 +52,6 @@ I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
 I2C_HandleTypeDef hi2c3;
 
-SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
 
@@ -106,7 +105,6 @@ static void MX_USART1_UART_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_TIM12_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -147,7 +145,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  uint8_t buff[50];
+  uint8_t tavolsag_1_buff[50];
   VL53L1_RangingMeasurementData_t RangingData;
   VL53L1_Dev_t  vl53l1_c; // center module
   VL53L1_DEV    Dev = &vl53l1_c;
@@ -184,7 +182,6 @@ int main(void)
   MX_I2C3_Init();
   MX_TIM12_Init();
   MX_TIM2_Init();
-  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   SERVO_Init(SZERVO);
   DC_MOTOR_Init(DC_MOTOR_PWM1);
@@ -201,6 +198,8 @@ int main(void)
   // initialize vl53l1x communication parameters
   Dev->I2cHandle = &hi2c1;
   Dev->I2cDevAddr = 0x52;
+
+  //HAL_I2C_Master_Transmit(&hi2c1, DevAddress, tavolsag_1_buff, 3, 0xFFFF);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -218,16 +217,23 @@ int main(void)
 	  //Szervo
 	  if(szervoEnable == 1)
 	  {
-		  SERVO_MoveTo(SZERVO, 50);
+		  /*SERVO_MoveTo(SZERVO, 50);
 		  HAL_Delay(2000);
 		  SERVO_MoveTo(SZERVO, 130);
-		  HAL_Delay(2000);
+		  HAL_Delay(2000);*/
 
-
-		  DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, 500); //ha pwm1 nagyobb, előremenet
-		  DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, 100);
+		  int d = 1024;
+		  int k = 300;
+		  if(k < d / 2){
+			  DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, k); //ha pwm1 nagyobb, előremenet
+			  DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, d - k);
+		  }
 	  }
-
+	  else{
+		  SERVO_MoveTo(SZERVO, 0);
+		  DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, 0);
+		  DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, 0);
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -381,44 +387,6 @@ static void MX_I2C3_Init(void)
   /* USER CODE BEGIN I2C3_Init 2 */
 
   /* USER CODE END I2C3_Init 2 */
-
-}
-
-/**
-  * @brief SPI1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_SPI1_Init(void)
-{
-
-  /* USER CODE BEGIN SPI1_Init 0 */
-
-  /* USER CODE END SPI1_Init 0 */
-
-  /* USER CODE BEGIN SPI1_Init 1 */
-
-  /* USER CODE END SPI1_Init 1 */
-  /* SPI1 parameter configuration*/
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 10;
-  if (HAL_SPI_Init(&hspi1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN SPI1_Init 2 */
-
-  /* USER CODE END SPI1_Init 2 */
 
 }
 
@@ -666,7 +634,7 @@ static void MX_TIM8_Init(void)
   htim8.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED3;
   htim8.Init.Period = 65535;
   htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim8.Init.RepetitionCounter = 0;
+  htim8.Init.RepetitionCounter = 1;
   htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim8) != HAL_OK)
   {
@@ -898,7 +866,7 @@ static void MX_GPIO_Init(void)
                           |GPIO_PIN_5, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|GPIO_PIN_5|GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_12|GPIO_PIN_5, GPIO_PIN_RESET);
@@ -918,8 +886,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA1 PA11 PA12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_11|GPIO_PIN_12;
+  /*Configure GPIO pins : PA1 PA5 PA11 PA12 */
+  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_5|GPIO_PIN_11|GPIO_PIN_12;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -955,11 +923,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if( GPIO_Pin == B1_Pin)
 	{
-		szervoEnable =!szervoEnable;
-
+		szervoEnable = !szervoEnable;
+		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 	}
 }
-
 
 /* USER CODE END 4 */
 

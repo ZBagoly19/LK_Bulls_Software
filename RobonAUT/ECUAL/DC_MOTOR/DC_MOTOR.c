@@ -41,7 +41,7 @@ void DC_MOTOR_Init(uint8_t au8_MOTOR_Instance)
 
 	htim.Instance = DC_MOTOR_CfgParam[au8_MOTOR_Instance].TIM_Instance;
 	htim.Init.Prescaler = PSC_Value;
-	htim.Init.CounterMode = TIM_COUNTERMODE_UP;
+	htim.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED3;
 	htim.Init.Period = ARR_Value;
 	htim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
