@@ -52,8 +52,10 @@ I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
 I2C_HandleTypeDef hi2c3;
 
+SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
+DMA_HandleTypeDef hdma_spi3_tx;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
@@ -66,12 +68,46 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+uint8_t btnEnable = 0;
+uint8_t szervoEnable = 0;
+uint8_t motvezEnable = 0;
+
+//const uint32_t = 0b000000000000000000000000000000000000000000000000;
+const uint32_t minta1_egyben = 0b000000000000000000000000000000001111110011111100;
+const uint8_t minta1 = 0b00000000;
+const uint8_t minta2 = 0b00000000;
+const uint8_t minta3 = 0b00000000;
+const uint8_t minta4 = 0b00000000;		// eddig minta (32 bit)
+const uint8_t minta5 = 0b11111100;		// innen 8 vezerlo jel
+const uint8_t minta6 = 0b11111100;
+uint8_t minta1_egyben_tomb[] = {0b00000000,
+								0b11000000,
+								0b11110000,
+								0b11111100,
+								0b11101111,
+								0b01010101
+};
+
+//const uint32_t minta2_egyben = 0b100010001000100010001000100010001111000011110000
+;
+const uint8_t minta7 = 0b11111111;
+const uint8_t minta8 = 0b11111111;
+const uint8_t minta9 = 0b11111111;
+const uint8_t minta10 = 0b11111111;	// eddig minta (32 bit)
+const uint8_t minta11 = 0b11000000;	// innen 8 vezerlo jel
+const uint8_t minta12 = 0b11000000;
+uint8_t minta2_egyben_tomb[] = {0b10001000,
+								0b10001000,
+								0b10001000,
+								0b10001000,
+								0b00000000,
+								0b00000000
+};
+
+
 int bluetooth_flag = 0;
 int bluetooth_j = 0;
 int bluetooth_a = 0;
-
-uint8_t szervoEnable = 0;
-
 //Bluetooth send
 uint8_t bluetooth_rx;
 char bluetooth_str1[60] = {0};
@@ -104,7 +140,9 @@ static void MX_TIM8_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_TIM12_Init(void);
+static void MX_DMA_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -133,7 +171,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 				bluetooth_i, kivant_sebesseg, sc_vagy_gyorskor, kanyarban_vagy_egyenes);
 		bluetooth_i++;
 		bluetooth_len = strlen(bluetooth_buffer);
-		HAL_UART_Transmit(&huart2, bluetooth_buffer, bluetooth_len, 100);
+		//HAL_UART_Transmit(&huart2, bluetooth_buffer, bluetooth_len, 100);
 	}
 }
 /* USER CODE END 0 */
@@ -145,10 +183,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  uint8_t tavolsag_1_buff[50];
-  VL53L1_RangingMeasurementData_t RangingData;
-  VL53L1_Dev_t  vl53l1_c; // center module
-  VL53L1_DEV    Dev = &vl53l1_c;
+	//uint8_t tavolsag_1_buff[50];
+	//VL53L1_RangingMeasurementData_t RangingData;
+	//VL53L1_Dev_t  vl53l1_c; // center module
+	//VL53L1_DEV    Dev = &vl53l1_c;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -181,7 +219,9 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C3_Init();
   MX_TIM12_Init();
+  MX_DMA_Init();
   MX_TIM2_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   SERVO_Init(SZERVO);
   DC_MOTOR_Init(DC_MOTOR_PWM1);
@@ -194,10 +234,25 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_2);   //PWM jel start
 
+  //Vonalszenzor init
+  	/*HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);		// PCB2: Von_OE1  1
+  	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);		// PCB2: Von_OE2  1*/
+  	/*HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET);	// PC4: Von_latch1  0
+  	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);	// PB1: Von_latch2  0
+  	HAL_SPI_Transmit(&hspi2, (uint8_t *)&minta1, 1, 100);	// 1. minta 1/6
+  	HAL_SPI_Transmit(&hspi2, (uint8_t *)&minta2, 1, 100);	// 1. minta 2/6
+  	HAL_SPI_Transmit(&hspi2, (uint8_t *)&minta3, 1, 100);	// 1. minta 3/6
+  	HAL_SPI_Transmit(&hspi2, (uint8_t *)&minta4, 1, 100);	// 1. minta 4/6
+  	HAL_SPI_Transmit(&hspi2, (uint8_t *)&minta5, 1, 100);	// 1. minta 5/6
+  	HAL_SPI_Transmit(&hspi2, (uint8_t *)&minta6, 1, 100);	// 1. minta 6/6
+  	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_SET);		// PC4: Von_latch1  1
+  	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);		// PB1: Von_latch2  1
+  	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET);	// PC4: Von_latch1  0
+  	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);	// PB1: Von_latch2  0*/
 
   // initialize vl53l1x communication parameters
-  Dev->I2cHandle = &hi2c1;
-  Dev->I2cDevAddr = 0x52;
+  //Dev->I2cHandle = &hi2c1;
+  //Dev->I2cDevAddr = 0x52;
 
   //HAL_I2C_Master_Transmit(&hi2c1, DevAddress, tavolsag_1_buff, 3, 0xFFFF);
   /* USER CODE END 2 */
@@ -206,6 +261,30 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  	/*HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);				// PCB2: Von_OE1  0
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);				// PCB2: Von_OE2  0
+
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET);			// PC4: Von_latch1  0
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);			// PB1: Von_latch2  0
+
+		HAL_SPI_Transmit(&hspi2, minta1_egyben_tomb, 6, 100);	// 1. minta egyben
+
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_SET);				// PC4: Von_latch1  1
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);				// PB1: Von_latch2  1
+		HAL_Delay(1);*/
+
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);				// PCB2: Von_OE1  0
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);				// PCB2: Von_OE2  0
+
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET);			// PC4: Von_latch1  0
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);			// PB1: Von_latch2  0
+
+		HAL_SPI_Transmit(&hspi2, minta2_egyben_tomb, 6, 100);	// 2. minta egyben
+
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_SET);				// PC4: Von_latch1  1
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);				// PB1: Von_latch2  1
+		//HAL_Delay(1);
+
 	  //Bluetooth iras/olvasas logika
 	  //HC05 Module-ban van puska
 
@@ -215,23 +294,26 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  //Szervo
-	  if(szervoEnable == 1)
-	  {
-		  /*SERVO_MoveTo(SZERVO, 50);
-		  HAL_Delay(2000);
-		  SERVO_MoveTo(SZERVO, 130);
-		  HAL_Delay(2000);*/
+	  if(btnEnable == 1){
+		  if(szervoEnable == 1){
+			  SERVO_MoveTo(SZERVO, 50);
+			  HAL_Delay(200);
+			  SERVO_MoveTo(SZERVO, 130);
+			  HAL_Delay(200);
+		  }
 
-		  int d = 1024;
-		  int k = 300;
-		  if(k < d / 2){
-			  DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, k); //ha pwm1 nagyobb, előremenet
-			  DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, d - k);
+		  if(motvezEnable == 1){
+			  int d = 1024;
+			  int k = 300;
+			  if(k < d / 2){
+				  DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, k); //ha pwm1 nagyobb, előremenet
+				  DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, d - k);
+			  }
 		  }
 	  }
 	  else{
 		  SERVO_MoveTo(SZERVO, 0);
-		  DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, 0);
+		  DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, 0);	//ez nem egeszen megallas, csak a jel kisimitasa. megallni k = d -vel kell
 		  DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, 0);
 	  }
   }
@@ -280,7 +362,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV8;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV4;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
@@ -391,6 +473,44 @@ static void MX_I2C3_Init(void)
 }
 
 /**
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
+
+  /* USER CODE BEGIN SPI1_Init 0 */
+
+  /* USER CODE END SPI1_Init 0 */
+
+  /* USER CODE BEGIN SPI1_Init 1 */
+
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI1_Init 2 */
+
+  /* USER CODE END SPI1_Init 2 */
+
+}
+
+/**
   * @brief SPI2 Initialization Function
   * @param None
   * @retval None
@@ -413,7 +533,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -846,6 +966,22 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Stream5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -866,7 +1002,7 @@ static void MX_GPIO_Init(void)
                           |GPIO_PIN_5, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|GPIO_PIN_5|GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_12|GPIO_PIN_5, GPIO_PIN_RESET);
@@ -886,8 +1022,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA1 PA5 PA11 PA12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_5|GPIO_PIN_11|GPIO_PIN_12;
+  /*Configure GPIO pins : PA1 PA11 PA12 */
+  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_11|GPIO_PIN_12;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -923,8 +1059,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if( GPIO_Pin == B1_Pin)
 	{
-		szervoEnable = !szervoEnable;
-		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+		btnEnable = !btnEnable;
+		//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);	//LED felvilagitasa
 	}
 }
 
