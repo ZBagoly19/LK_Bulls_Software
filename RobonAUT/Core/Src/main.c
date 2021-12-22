@@ -72,36 +72,19 @@ uint8_t btnEnable = 0;
 uint8_t szervoEnable = 0;
 uint8_t motvezEnable = 0;
 
-//const uint32_t = 0b000000000000000000000000000000000000000000000000;
-const uint32_t minta1_egyben = 0b000000000000000000000000000000001111110011111100;
-const uint8_t minta1 = 0b00000000;
-const uint8_t minta2 = 0b00000000;
-const uint8_t minta3 = 0b00000000;
-const uint8_t minta4 = 0b00000000;		// eddig minta (32 bit)
-const uint8_t minta5 = 0b11111100;		// innen 8 vezerlo jel
-const uint8_t minta6 = 0b11111100;
-uint8_t minta1_egyben_tomb[] = {0b00000000,
-								0b11000000,
-								0b11110000,
-								0b11111100,
-								0b11101111,
-								0b01010101
+uint8_t minta1[] = {0b10001000,		//32 led minta eleje
+					0b10001000,
+					0b10001000,
+					0b10001000,		//32 led minta vege
+					0b11111111,		//8 vezerlojel az U6-ba
+					0b11111111		//8 vezerlojel az U5-be
 };
-
-//const uint32_t minta2_egyben = 0b100010001000100010001000100010001111000011110000
-;
-const uint8_t minta7 = 0b11111111;
-const uint8_t minta8 = 0b11111111;
-const uint8_t minta9 = 0b11111111;
-const uint8_t minta10 = 0b11111111;	// eddig minta (32 bit)
-const uint8_t minta11 = 0b11000000;	// innen 8 vezerlo jel
-const uint8_t minta12 = 0b11000000;
-uint8_t minta2_egyben_tomb[] = {0b10001000,
-								0b10001000,
-								0b10001000,
-								0b10001000,
-								0b00000000,
-								0b00000000
+uint8_t minta2[] = {0b10001000,		//32 led minta eleje
+					0b10001000,
+					0b10001000,
+					0b10001000,		//32 led minta vege
+					0b11111111,		//8 vezerlojel az U6-ba
+					0b11111111		//8 vezerlojel az U5-be
 };
 
 
@@ -235,20 +218,6 @@ int main(void)
   HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_2);   //PWM jel start
 
   //Vonalszenzor init
-  	/*HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET);		// PCB2: Von_OE1  1
-  	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);		// PCB2: Von_OE2  1*/
-  	/*HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET);	// PC4: Von_latch1  0
-  	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);	// PB1: Von_latch2  0
-  	HAL_SPI_Transmit(&hspi2, (uint8_t *)&minta1, 1, 100);	// 1. minta 1/6
-  	HAL_SPI_Transmit(&hspi2, (uint8_t *)&minta2, 1, 100);	// 1. minta 2/6
-  	HAL_SPI_Transmit(&hspi2, (uint8_t *)&minta3, 1, 100);	// 1. minta 3/6
-  	HAL_SPI_Transmit(&hspi2, (uint8_t *)&minta4, 1, 100);	// 1. minta 4/6
-  	HAL_SPI_Transmit(&hspi2, (uint8_t *)&minta5, 1, 100);	// 1. minta 5/6
-  	HAL_SPI_Transmit(&hspi2, (uint8_t *)&minta6, 1, 100);	// 1. minta 6/6
-  	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_SET);		// PC4: Von_latch1  1
-  	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);		// PB1: Von_latch2  1
-  	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET);	// PC4: Von_latch1  0
-  	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);	// PB1: Von_latch2  0*/
 
   // initialize vl53l1x communication parameters
   //Dev->I2cHandle = &hi2c1;
@@ -261,26 +230,20 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  	/*HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);				// PCB2: Von_OE1  0
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);				// PCB2: Von_OE2  0
-
+	  	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);			// PCB2: Von_OE1  0
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);			// PCB2: Von_OE2  0
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET);			// PC4: Von_latch1  0
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);			// PB1: Von_latch2  0
-
-		HAL_SPI_Transmit(&hspi2, minta1_egyben_tomb, 6, 100);	// 1. minta egyben
-
+		HAL_SPI_Transmit(&hspi2, minta1, 6, 100);			// 1. minta egyben
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_SET);				// PC4: Von_latch1  1
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);				// PB1: Von_latch2  1
-		HAL_Delay(1);*/
+		//HAL_Delay(1);
 
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);				// PCB2: Von_OE1  0
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);				// PCB2: Von_OE2  0
-
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);			// PCB2: Von_OE1  0
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);			// PCB2: Von_OE2  0
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET);			// PC4: Von_latch1  0
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);			// PB1: Von_latch2  0
-
-		HAL_SPI_Transmit(&hspi2, minta2_egyben_tomb, 6, 100);	// 2. minta egyben
-
+		HAL_SPI_Transmit(&hspi2, minta2, 6, 100);			// 2. minta egyben
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_SET);				// PC4: Von_latch1  1
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);				// PB1: Von_latch2  1
 		//HAL_Delay(1);
