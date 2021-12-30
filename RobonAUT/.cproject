@@ -92,6 +92,7 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="VL53L1X|Servo" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry excluding="SERVO" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="ECUAL"/>
+						<entry excluding="BUTTONS|DC_MOTOR|SERVO" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Debug/ECUAL"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
