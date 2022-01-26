@@ -124,12 +124,12 @@ uint8_t adc_1[] = { 	0b00000000,		//32 led minta eleje
 						0b00000111,		//8 vezerlojel az U6-ba
 						0b00001111		//8 vezerlojel az U5-be
 };
-uint8_t adc_2[] = { 	0b00000000,		//32 led minta eleje
-						0b00000000,		//
-						0b00000000,		//
-						0b00000000,		//32 led minta vege
+uint8_t adc_2[] = { 	0b10001000,		//32 led minta eleje
+						0b10001000,		//
+						0b10001000,		//
+						0b10001000,		//32 led minta vege
 						0b00001011,		//8 vezerlojel az U6-ba
-						0b00001111		//8 vezerlojel az U5-be
+						0b00001011		//8 vezerlojel az U5-be
 };
 uint8_t adc_3[] = { 	0b00000000,		//32 led minta eleje
 						0b00000000,		//
@@ -142,23 +142,24 @@ uint8_t adc_4[] = { 	0b00000000,		//32 led minta eleje
 						0b00000000,		//
 						0b00000000,		//
 						0b00000000,		//32 led minta vege
-						0b00001110,		//8 vezerlojel az U6-ba
-						0b00001111		//8 vezerlojel az U5-be
+						0b00001111,		//8 vezerlojel az U6-ba
+						0b00001110		//8 vezerlojel az U5-be
 };
 
 //barmi csak nem 11, ADD2, ADD1, ADD0, barmi csak nem 001, tehat: 00 _ _ _ 110
-uint8_t adc_chanel0 =	0b00000110;		//input chanel 0
-uint8_t adc_chanel1 =	0b00001110;		//input chanel 1
-uint8_t adc_chanel2 =	0b00010110;		//input chanel 2
-uint8_t adc_chanel3 =	0b00011110;		//input chanel 3
-uint8_t adc_chanel4 =	0b00100110;		//input chanel 4
-uint8_t adc_chanel5 =	0b00101110;		//input chanel 5
-uint8_t adc_chanel6 =	0b00110110;		//input chanel 6
-uint8_t adc_chanel7 =	0b00111110;		//input chanel 7
+uint8_t adc_chanel0 =	0b00000000;		//input chanel 0
+uint8_t adc_chanel1 =	0b00001000;		//input chanel 1
+uint8_t adc_chanel2 =	0b00010000;		//input chanel 2
+uint8_t adc_chanel3 =	0b00011000;		//input chanel 3
+uint8_t adc_chanel4 =	0b00100000;		//input chanel 4
+uint8_t adc_chanel5 =	0b00101000;		//input chanel 5
+uint8_t adc_chanel6 =	0b00110000;		//input chanel 6
+uint8_t adc_chanel7 =	0b00111000;		//input chanel 7
 
 uint8_t eredmeny_16bit[] = {0b11110000, 0b00000000};
 double eredmeny_0;
 double eredmeny_1;
+int sotet = 0;
 
 
 int bluetooth_flag = 0;
@@ -241,7 +242,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t eredmeny_16bit[] = {0b1111111, 0b1111111};
+	uint8_t eredmeny_16bit[2] = {0b1111111, 0b1111111};
 	eredmeny_0 = 10.0;
 	eredmeny_1 = 10.0;
 	//uint8_t tavolsag_1_buff[50];
@@ -310,21 +311,28 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	/*HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);	// PCB2: Von_OE1  0
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);	// PCB2: Von_OE2  0*/
-	Vonalszenzor_minta_kuldes(leszed);
+	/*Vonalszenzor_minta_kuldes(leszed);
 	HAL_Delay(1);
-	Vonalszenzor_minta_kuldes(minta0);
+	Vonalszenzor_minta_kuldes(minta0);*/
 
 	while (1) {
 		uint32_t vonal_eredmeny;
 		//vonal_eredmeny = Vonalszenzor_operal();
-		/*Vonalszenzor_minta_kuldes(leszed);
-		Vonalszenzor_minta_kuldes(minta1);
-		HAL_Delay(1000);
 		Vonalszenzor_minta_kuldes(leszed);
-		Vonalszenzor_minta_kuldes(adc_1);
+		Vonalszenzor_minta_kuldes(minta1);
+		HAL_Delay(500);
+		Vonalszenzor_minta_kuldes(leszed);
+		Vonalszenzor_minta_kuldes(adc_4);
+		//HAL_Delay(500);
 		Vonalszenzor_meres_kiolvasas(adc_chanel4, eredmeny_16bit);
+		Vonalszenzor_minta_kuldes(leszed);
 		eredmeny_0 = (double) eredmeny_16bit[0];
-		eredmeny_1 = (double) eredmeny_16bit[1];*/
+		eredmeny_1 = (double) eredmeny_16bit[1];
+		if(eredmeny_0 > 9){
+			sotet = 1;
+		} else {
+			sotet = 0;
+		}
 
 
 		//Bluetooth iras/olvasas logika
@@ -333,6 +341,15 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+		//uint8_t Test[] = "Hello World\r\n"; //Data to send
+		/*int size = sizeof(minta1);
+		HAL_UART_Transmit(&huart2, minta1, size, 100);// Sending in normal mode
+		HAL_Delay(1000);*/
+
+
+
+
 		//Szervo
 		if (btnEnable == 1) {
 			if (szervoEnable == 1) {
@@ -536,7 +553,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -574,7 +591,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -1173,8 +1190,9 @@ void Vonalszenzor_minta_kuldes(uint8_t* minta) {
 }
 
 void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny) {
-	HAL_SPI_Transmit(&hspi1, &chanel, 1, 100);
-	HAL_SPI_Receive(&hspi1, eredmeny, 2, 100);
+	uint8_t temp1[2]= {chanel,0};
+	HAL_SPI_Transmit(&hspi1, temp1, 2, 100);
+	HAL_SPI_Receive(&hspi1, eredmeny, 2, 100);		// temp2 = 0000_1111 | 11111111 (5 max) -> 1111 | 1111
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
