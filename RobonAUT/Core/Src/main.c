@@ -69,9 +69,8 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 uint8_t btnEnable = 0;
-uint8_t szervoEnable = 1;
+uint8_t szervoEnable = 0;
 uint8_t motvezEnable = 0;
-uint8_t vonalszenzorEnable = 0;
 
 //Lehet, hogy az adc CS-ek alapbol 1-ben kell legyenek es 0-val vannak selectalva
 //Minden uj minta utan ki kell kuldeni
@@ -245,7 +244,7 @@ uint8_t eredmeny_16bit[] = {0b11110000, 0b00000000};
 uint8_t eredmeny_0;
 uint8_t eredmeny_1;
 
-int vonal = 100;
+int vonal1 = 100;
 int sotet0 = 0;
 int sotet1 = 0;
 int sotet2 = 0;
@@ -279,8 +278,7 @@ int sotet29 = 0;
 int sotet30 = 0;
 int sotet31 = 0;
 
-//31-ig és mind bele a live expressionbe
-
+int motvez_d = 1024;
 
 int bluetooth_flag = 0;
 int bluetooth_j = 0;
@@ -436,8 +434,7 @@ int main(void)
 		for(int i=0; i < 32-1; i++) {
 			if(vonal_eredmeny[i] > 9) {
 				if(vonal_eredmeny[i+1] > VONAL_THRESHOLD) {
-					//itt vonal van
-					vonal = i;
+					vonal1 = i;
 				}
 			}
 		}
@@ -509,20 +506,30 @@ int main(void)
 		//Szervo
 		if (btnEnable == 1) {
 			if (szervoEnable == 1) {
-				SERVO_MoveTo(SZERVO, 0);
+				/*SERVO_MoveTo(SZERVO, 0);
 				HAL_Delay(1000);
 				SERVO_MoveTo(SZERVO, 90);
 				HAL_Delay(1000);
 				SERVO_MoveTo(SZERVO, 180);
-				HAL_Delay(1000);
+				HAL_Delay(1000);*/
+				if 			(0 <= vonal1 && vonal1 < 6) {
+					SERVO_MoveTo(SZERVO, 0);
+				} else if 	(6 <= vonal1 && vonal1 < 13) {
+					SERVO_MoveTo(SZERVO, 60);
+				} else if 	(13 <= vonal1 && vonal1 < 19) {
+					SERVO_MoveTo(SZERVO, 90);
+				} else if 	(19 <= vonal1 && vonal1 < 26) {
+					SERVO_MoveTo(SZERVO, 120);
+				} else if 	(26 <= vonal1 && vonal1 < 32) {
+					SERVO_MoveTo(SZERVO, 180);
+				}
 			}
 
 			if (motvezEnable == 1) {
-				int d = 1024;
-				int k = 300;
-				if (k < d / 2) {
+				int k = 200;
+				if (k < motvez_d / 2) {
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, k); //ha pwm1 nagyobb, előremenet
-					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, d - k);
+					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - k);
 				}
 			}
 		} else {
