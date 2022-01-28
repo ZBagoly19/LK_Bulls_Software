@@ -240,9 +240,6 @@ uint8_t adc_chanel6 =	0b00110000;		//input chanel 6; minta3-nel kell
 uint8_t adc_chanel7 =	0b00111000;		//input chanel 7; minta4-nel kell
 
 int VONAL_THRESHOLD = 6;
-uint8_t eredmeny_16bit[] = {0b11110000, 0b00000000};
-uint8_t eredmeny_0;
-uint8_t eredmeny_1;
 
 int vonal1 = 100;
 int sotet0 = 0;
@@ -295,9 +292,9 @@ char bluetooth_buffer[100] = { 0 };
 int bluetooth_i = 0;
 
 //Tavolsagszenzor I2C addresses of GPIO expanders on the X-NUCLEO-53L1A1
-/*ezek nem jok
+//ezek nem jok
  #define EXPANDER_1_ADDR 0x84 // 0x42 << 1
- #define EXPANDER_2_ADDR 0x86 // 0x43 << 1*/
+ #define EXPANDER_2_ADDR 0x86 // 0x43 << 1
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -360,13 +357,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t eredmeny_16bit[2] = {0b1111111, 0b1111111};
-	eredmeny_0 = 10.0;
-	eredmeny_1 = 10.0;
-	//uint8_t tavolsag_1_buff[50];
-	//VL53L1_RangingMeasurementData_t RangingData;
-	//VL53L1_Dev_t  vl53l1_c; // center module
-	//VL53L1_DEV    Dev = &vl53l1_c;
+	uint8_t tavolsag_1_buff[50];
+	VL53L1_RangingMeasurementData_t RangingData;
+	VL53L1_Dev_t vl53l1_c; // center module
+	VL53L1_DEV Dev = &vl53l1_c;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -418,10 +412,46 @@ int main(void)
 	Vonalszenzor_Init();
 
 	// initialize vl53l1x communication parameters
-	//Dev->I2cHandle = &hi2c1;
-	//Dev->I2cDevAddr = 0x52;
+	Dev->I2cHandle = &hi2c1;
+	Dev->I2cDevAddr = 0x52;
 
-	//HAL_I2C_Master_Transmit(&hi2c1, DevAddress, tavolsag_1_buff, 3, 0xFFFF);
+  /*** Initialize GPIO expanders ***/
+  // Unused GPIO should be configured as outputs to minimize the power consumption
+  buff[0] = 0x14; // GPDR (GPIO set direction register)
+  buff[1] = 0xFF; // GPIO_0 - GPIO_7
+  buff[2] = 0xFF; // GPIO_8 - GPIO_15
+  HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, buff, 3, 0xFFFF );
+  HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_2_ADDR, buff, 3, 0xFFFF );
+
+  // clear XSHUT (disable center module) -> expander 1, GPIO_15
+  buff[0] = 0x13; // GPSR + 1 ( GPIO set pin state register)
+  HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, buff, 1, 0xFFFF );
+  HAL_I2C_Master_Receive( &hi2c1, EXPANDER_1_ADDR, buff, 1, 0xFFFF );
+  buff[1] = buff[0] & ~( 1 << ( 15 - 8 ) ); // clear GPIO_15
+  buff[0] = 0x13; // GPSR + 1 ( GPIO set pin state register)
+  HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, buff, 2, 0xFFFF );
+
+  HAL_Delay( 2 ); // 2ms reset time
+
+  // set XSHUT (enable center module) -> expander 1, GPIO_15
+  buff[0] = 0x13; // GPSR + 1 ( GPIO set pin state)
+  HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, buff, 1, 0xFFFF );
+  HAL_I2C_Master_Receive( &hi2c1, EXPANDER_1_ADDR, buff, 1, 0xFFFF );
+  buff[1] = buff[0] | ( 1 << ( 15 - 8 ) ); // set GPIO_15
+  buff[0] = 0x13; // GPSR + 1 ( GPIO set pin state register)
+  HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, buff, 2, 0xFFFF );
+
+  HAL_Delay( 2 );
+
+  /*** VL53L1X Initialization ***/
+  VL53L1_WaitDeviceBooted( Dev );
+  VL53L1_DataInit( Dev );
+  VL53L1_StaticInit( Dev );
+  VL53L1_SetDistanceMode( Dev, VL53L1_DISTANCEMODE_LONG );
+  VL53L1_SetMeasurementTimingBudgetMicroSeconds( Dev, 50000 );
+  VL53L1_SetInterMeasurementPeriodMilliSeconds( Dev, 500 );
+  VL53L1_StartMeasurement( Dev );
+
 	//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);	//LED felvilagitasa, kell a .ioc GPIO Output PA5-re
   /* USER CODE END 2 */
 
@@ -471,22 +501,6 @@ int main(void)
 		sotet30 = vonal_eredmeny[30];
 		sotet31 = vonal_eredmeny[31];
 
-		/*Vonalszenzor_minta_kuldes(leszed);
-		Vonalszenzor_minta_kuldes(minta1);
-		HAL_Delay(500);
-		Vonalszenzor_minta_kuldes(leszed);
-		Vonalszenzor_minta_kuldes(minta1_adc4e);
-		//HAL_Delay(500);
-		Vonalszenzor_meres_kiolvasas(adc_chanel4, eredmeny_16bit);
-		Vonalszenzor_minta_kuldes(leszed);
-		eredmeny_0 = (uint8_t) eredmeny_16bit[0];
-		eredmeny_1 = (uint8_t) eredmeny_16bit[1];	//ha ez mukodik, akkor meg kell nezni _0-ra is es ha ott is, akkor jomkell legyen az _operal
-		if(eredmeny_0 > 9){
-			sotet0 = 1;
-		} else {
-			sotet0 = 0;
-		}*/
-
 
 		//Bluetooth iras/olvasas logika
 		//HC05 Module-ban van puska
@@ -501,17 +515,9 @@ int main(void)
 		HAL_Delay(1000);*/
 
 
-
-
 		//Szervo
 		if (btnEnable == 1) {
 			if (szervoEnable == 1) {
-				/*SERVO_MoveTo(SZERVO, 0);
-				HAL_Delay(1000);
-				SERVO_MoveTo(SZERVO, 90);
-				HAL_Delay(1000);
-				SERVO_MoveTo(SZERVO, 180);
-				HAL_Delay(1000);*/
 				if 			(0 <= vonal1 && vonal1 < 6) {
 					SERVO_MoveTo(SZERVO, 0);
 				} else if 	(6 <= vonal1 && vonal1 < 13) {
