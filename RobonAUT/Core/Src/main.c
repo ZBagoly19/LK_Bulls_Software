@@ -291,6 +291,14 @@ int bluetooth_len = 0;
 char bluetooth_buffer[100] = { 0 };
 int bluetooth_i = 0;
 
+uint8_t kapuk[6] = { 0 };
+uint8_t kapu0 = '?';
+uint8_t kapu1 = '?';
+uint8_t kapu2 = '?';
+uint8_t kapu3 = '?';
+uint8_t kapu4 = '?';
+uint8_t kapu5 = '?';
+
 //Tavolsagszenzor I2C addresses of GPIO expanders on the X-NUCLEO-53L1A1
 //ezek nem jok
  #define EXPANDER_1_ADDR 0x84 // 0x42 << 1
@@ -325,19 +333,19 @@ void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny);	//aktualis
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-	if (huart == &huart2) {
+	/*if (huart == &huart2) {
 		//erosen kerdeses
 		if (bluetooth_rx == 0x0A)
 			bluetooth_flag = 1;
 		bluetooth_str1[bluetooth_a] = bluetooth_rx;
 		bluetooth_a++;
 	}
-	HAL_UART_Receive_IT(&huart2, &bluetooth_rx, 1);
+	HAL_UART_Receive(&huart2, &bluetooth_rx, 1, 5000);*/
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
-	if (htim == &htim2) {
+	/*if (htim == &htim2) {
 		//itt kell kiirni amire kivancsiak vagyunk a stringben
 		sprintf(bluetooth_buffer,
 				"%i -edik uzenet \t kivant sebesseg: %i \t allapot: %c kanyar/egyenes: %c \r\n",
@@ -346,7 +354,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		bluetooth_i++;
 		bluetooth_len = strlen(bluetooth_buffer);
 		//HAL_UART_Transmit(&huart2, bluetooth_buffer, bluetooth_len, 100);
-	}
+	}*/
 }
 /* USER CODE END 0 */
 
@@ -357,7 +365,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t tavolsag_1_buff[50];
+	uint8_t tavolsag1_buff[50];
 	VL53L1_RangingMeasurementData_t RangingData;
 	VL53L1_Dev_t vl53l1_c; // center module
 	VL53L1_DEV Dev = &vl53l1_c;
@@ -403,7 +411,7 @@ int main(void)
 	DC_MOTOR_Start(DC_MOTOR_PWM1, 0);
 	DC_MOTOR_Start(DC_MOTOR_PWM2, 0);
 
-	HAL_UART_Receive_IT(&huart2, &bluetooth_rx, 1);
+	//HAL_UART_Receive(&huart2, &bluetooth_rx, 1, 5000);
 	HAL_TIM_Base_Start_IT(&htim2);
 
 	HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_2);   //PWM jel start
@@ -411,46 +419,47 @@ int main(void)
 	//Vonalszenzor init
 	Vonalszenzor_Init();
 
+
 	// initialize vl53l1x communication parameters
 	Dev->I2cHandle = &hi2c1;
 	Dev->I2cDevAddr = 0x52;
 
-  /*** Initialize GPIO expanders ***/
-  // Unused GPIO should be configured as outputs to minimize the power consumption
-  buff[0] = 0x14; // GPDR (GPIO set direction register)
-  buff[1] = 0xFF; // GPIO_0 - GPIO_7
-  buff[2] = 0xFF; // GPIO_8 - GPIO_15
-  HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, buff, 3, 0xFFFF );
-  HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_2_ADDR, buff, 3, 0xFFFF );
+	/*** Initialize GPIO expanders ***/
+	// Unused GPIO should be configured as outputs to minimize the power consumption
+	tavolsag1_buff[0] = 0x14; // GPDR (GPIO set direction register)
+	tavolsag1_buff[1] = 0xFF; // GPIO_0 - GPIO_7
+	tavolsag1_buff[2] = 0xFF; // GPIO_8 - GPIO_15
+	HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, tavolsag1_buff, 3, 0xFFFF );
+	HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_2_ADDR, tavolsag1_buff, 3, 0xFFFF );
 
-  // clear XSHUT (disable center module) -> expander 1, GPIO_15
-  buff[0] = 0x13; // GPSR + 1 ( GPIO set pin state register)
-  HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, buff, 1, 0xFFFF );
-  HAL_I2C_Master_Receive( &hi2c1, EXPANDER_1_ADDR, buff, 1, 0xFFFF );
-  buff[1] = buff[0] & ~( 1 << ( 15 - 8 ) ); // clear GPIO_15
-  buff[0] = 0x13; // GPSR + 1 ( GPIO set pin state register)
-  HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, buff, 2, 0xFFFF );
+	// clear XSHUT (disable center module) -> expander 1, GPIO_15
+	tavolsag1_buff[0] = 0x13; // GPSR + 1 ( GPIO set pin state register)
+	HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, tavolsag1_buff, 1, 0xFFFF );
+	HAL_I2C_Master_Receive( &hi2c1, EXPANDER_1_ADDR, tavolsag1_buff, 1, 0xFFFF );
+	tavolsag1_buff[1] = tavolsag1_buff[0] & ~( 1 << ( 15 - 8 ) ); // clear GPIO_15
+	tavolsag1_buff[0] = 0x13; // GPSR + 1 ( GPIO set pin state register)
+	HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, tavolsag1_buff, 2, 0xFFFF );
 
-  HAL_Delay( 2 ); // 2ms reset time
+	HAL_Delay( 2 ); // 2ms reset time
 
-  // set XSHUT (enable center module) -> expander 1, GPIO_15
-  buff[0] = 0x13; // GPSR + 1 ( GPIO set pin state)
-  HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, buff, 1, 0xFFFF );
-  HAL_I2C_Master_Receive( &hi2c1, EXPANDER_1_ADDR, buff, 1, 0xFFFF );
-  buff[1] = buff[0] | ( 1 << ( 15 - 8 ) ); // set GPIO_15
-  buff[0] = 0x13; // GPSR + 1 ( GPIO set pin state register)
-  HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, buff, 2, 0xFFFF );
+	// set XSHUT (enable center module) -> expander 1, GPIO_15
+	tavolsag1_buff[0] = 0x13; // GPSR + 1 ( GPIO set pin state)
+	HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, tavolsag1_buff, 1, 0xFFFF );
+	HAL_I2C_Master_Receive( &hi2c1, EXPANDER_1_ADDR, tavolsag1_buff, 1, 0xFFFF );
+	tavolsag1_buff[1] = tavolsag1_buff[0] | ( 1 << ( 15 - 8 ) ); // set GPIO_15
+	tavolsag1_buff[0] = 0x13; // GPSR + 1 ( GPIO set pin state register)
+	HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, tavolsag1_buff, 2, 0xFFFF );
 
-  HAL_Delay( 2 );
+	HAL_Delay( 2 );
 
-  /*** VL53L1X Initialization ***/
-  VL53L1_WaitDeviceBooted( Dev );
-  VL53L1_DataInit( Dev );
-  VL53L1_StaticInit( Dev );
-  VL53L1_SetDistanceMode( Dev, VL53L1_DISTANCEMODE_LONG );
-  VL53L1_SetMeasurementTimingBudgetMicroSeconds( Dev, 50000 );
-  VL53L1_SetInterMeasurementPeriodMilliSeconds( Dev, 500 );
-  VL53L1_StartMeasurement( Dev );
+	/*** VL53L1X Initialization ***/
+	VL53L1_WaitDeviceBooted( Dev );
+	VL53L1_DataInit( Dev );
+	VL53L1_StaticInit( Dev );
+	VL53L1_SetDistanceMode( Dev, VL53L1_DISTANCEMODE_LONG );
+	VL53L1_SetMeasurementTimingBudgetMicroSeconds( Dev, 50000 );
+	VL53L1_SetInterMeasurementPeriodMilliSeconds( Dev, 500 );
+	VL53L1_StartMeasurement( Dev );
 
 	//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);	//LED felvilagitasa, kell a .ioc GPIO Output PA5-re
   /* USER CODE END 2 */
@@ -458,7 +467,24 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
+	uint8_t temp_radio = '?';
 	while (1) {
+		//radios modul
+		temp_radio = '?';
+		HAL_UART_Receive(&huart1, &temp_radio, 1, 5000);
+		int i = 0;
+		while(temp_radio != 0x10) {
+			kapuk[i] = temp_radio;
+			i++;
+			HAL_UART_Receive(&huart1, &temp_radio, 1, 5000);
+		}
+		kapu0 = kapuk[0];
+		kapu1 = kapuk[1];
+		kapu2 = kapuk[2];
+		kapu3 = kapuk[3];
+		kapu4 = kapuk[4];
+		kapu5 = kapuk[5];
+
 		uint8_t vonal_eredmeny[32] = { 0 };
 		Vonalszenzor_operal(vonal_eredmeny);
 		for(int i=0; i < 32-1; i++) {
@@ -514,6 +540,12 @@ int main(void)
 		HAL_UART_Transmit(&huart2, minta1, size, 100);// Sending in normal mode
 		HAL_Delay(1000);*/
 
+		VL53L1_WaitMeasurementDataReady( Dev );
+		VL53L1_GetRangingMeasurementData( Dev, &RangingData );
+		/*sprintf( (char*)buff, "%d, %d, %.2f, %.2f\n\r", RangingData.RangeStatus, RangingData.RangeMilliMeter,
+				 ( RangingData.SignalRateRtnMegaCps / 65536.0 ), RangingData.AmbientRateRtnMegaCps / 65336.0 );
+		HAL_UART_Transmit( &huart2, buff, strlen( (char*)buff ), 0xFFFF );*/
+		VL53L1_ClearInterruptAndStartMeasurement( Dev );
 
 		//Szervo
 		if (btnEnable == 1) {
@@ -1316,7 +1348,6 @@ static void Vonalszenzor_operal(uint8_t* teljes_kiolvasott) {
 	//HAL_Delay(200);
 	Vonalszenzor_minta_kuldes(leszed);
 
-
 	Vonalszenzor_minta_kuldes(minta2_adc1e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel1, eredmeny_16bit_temp);
 	teljes_kiolvasott[1] = (uint8_t) eredmeny_16bit_temp[0];
@@ -1369,7 +1400,6 @@ static void Vonalszenzor_operal(uint8_t* teljes_kiolvasott) {
 	//HAL_Delay(200);
 	Vonalszenzor_minta_kuldes(leszed);
 
-
 	Vonalszenzor_minta_kuldes(minta4_adc1e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel3, eredmeny_16bit_temp);
 	teljes_kiolvasott[3] = (uint8_t) eredmeny_16bit_temp[0];
@@ -1395,7 +1425,6 @@ static void Vonalszenzor_operal(uint8_t* teljes_kiolvasott) {
 	teljes_kiolvasott[31] = (uint8_t) eredmeny_16bit_temp[0];
 	//HAL_Delay(200);
 	Vonalszenzor_minta_kuldes(leszed);
-
 }
 
 void Vonalszenzor_minta_kuldes(uint8_t* minta) {
