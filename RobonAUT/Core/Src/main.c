@@ -116,6 +116,8 @@ uint8_t minta4[] = { 	0b00010001,		//32 led minta eleje
 						0b00001111,		//8 vezerlojel az U6-ba
 						0b00001111		//8 vezerlojel az U5-be
 };
+
+//első minták
 uint8_t minta4_adc4e[] = { 	0b10001000,		//32 led minta eleje
 							0b10001000,		//
 							0b10001000,		//
@@ -229,6 +231,120 @@ uint8_t minta1_adc1e[] = { 	0b00010001,		//32 led minta eleje
 							0b00001111		//8 vezerlojel az U5-be
 };
 
+//hátsó minták
+uint8_t minta4_adc4h[] = { 	0b10001000,		//32 led minta eleje
+							0b10001000,		//
+							0b10001000,		//
+							0b10001000,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00000111		//8 vezerlojel az U5-be
+};
+uint8_t minta4_adc3h[] = { 	0b10001000,		//32 led minta eleje
+							0b10001000,		//
+							0b10001000,		//
+							0b10001000,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001011		//8 vezerlojel az U5-be
+};
+uint8_t minta4_adc2h[] = { 	0b10001000,		//32 led minta eleje
+							0b10001000,		//
+							0b10001000,		//
+							0b10001000,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001101		//8 vezerlojel az U5-be
+};
+uint8_t minta4_adc1h[] = { 	0b10001000,		//32 led minta eleje
+							0b10001000,		//
+							0b10001000,		//
+							0b10001000,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001110		//8 vezerlojel az U5-be
+};
+uint8_t minta3_adc4h[] = { 	0b01000100,		//32 led minta eleje
+							0b01000100,		//
+							0b01000100,		//
+							0b01000100,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00000111		//8 vezerlojel az U5-be
+};
+uint8_t minta3_adc3h[] = { 	0b01000100,		//32 led minta eleje
+							0b01000100,		//
+							0b01000100,		//
+							0b01000100,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001011		//8 vezerlojel az U5-be
+};
+uint8_t minta3_adc2h[] = { 	0b01000100,		//32 led minta eleje
+							0b01000100,		//
+							0b01000100,		//
+							0b01000100,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001101		//8 vezerlojel az U5-be
+};
+uint8_t minta3_adc1h[] = { 	0b01000100,		//32 led minta eleje
+							0b01000100,		//
+							0b01000100,		//
+							0b01000100,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001110		//8 vezerlojel az U5-be
+};
+uint8_t minta2_adc4h[] = { 	0b00100010,		//32 led minta eleje
+							0b00100010,		//
+							0b00100010,		//
+							0b00100010,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00000111		//8 vezerlojel az U5-be
+};
+uint8_t minta2_adc3h[] = { 	0b00100010,		//32 led minta eleje
+							0b00100010,		//
+							0b00100010,		//
+							0b00100010,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001011		//8 vezerlojel az U5-be
+};
+uint8_t minta2_adc2h[] = { 	0b00100010,		//32 led minta eleje
+							0b00100010,		//
+							0b00100010,		//
+							0b00100010,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001101		//8 vezerlojel az U5-be
+};
+uint8_t minta2_adc1h[] = { 	0b00100010,		//32 led minta eleje
+							0b00100010,		//
+							0b00100010,		//
+							0b00100010,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001110		//8 vezerlojel az U5-be
+};
+uint8_t minta1_adc4h[] = { 	0b00010001,		//32 led minta eleje
+							0b00010001,		//
+							0b00010001,		//
+							0b00010001,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00000111		//8 vezerlojel az U5-be
+};
+uint8_t minta1_adc3h[] = { 	0b00010001,		//32 led minta eleje
+							0b00010001,		//
+							0b00010001,		//
+							0b00010001,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001011		//8 vezerlojel az U5-be
+};
+uint8_t minta1_adc2h[] = { 	0b00010001,		//32 led minta eleje
+							0b00010001,		//
+							0b00010001,		//
+							0b00010001,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001101		//8 vezerlojel az U5-be
+};
+uint8_t minta1_adc1h[] = { 	0b00010001,		//32 led minta eleje
+							0b00010001,		//
+							0b00010001,		//
+							0b00010001,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001110		//8 vezerlojel az U5-be
+};
+
 //barmi csak nem 11, ADD2, ADD1, ADD0, barmi csak nem 001, tehat: 00 _ _ _ 000
 uint8_t adc_chanel0 =	0b00000000;		//input chanel 0; minta1-nel kell
 uint8_t adc_chanel1 =	0b00001000;		//input chanel 1; minta2-nel kell
@@ -241,14 +357,22 @@ uint8_t adc_chanel7 =	0b00111000;		//input chanel 7; minta4-nel kell
 
 int VONAL_THRESHOLD = 6;
 
-uint8_t vonalak[5] = { '-' };
-uint8_t vonal0 = '?';
-uint8_t vonal1 = '?';
-uint8_t vonal2 = '?';
-uint8_t vonal3 = '?';
-uint8_t vonal4 = '?';
+uint8_t vonalak_elso[5] = { '-' };
+uint8_t vonal0_elso = '?';
+uint8_t vonal1_elso = '?';
+uint8_t vonal2_elso = '?';
+uint8_t vonal3_elso = '?';
+uint8_t vonal4_elso = '?';
 
-uint8_t vonal_eredmeny[33] = { 0 };
+uint8_t vonalak_hatso[5] = { '-' };
+uint8_t vonal0_hatso = '?';
+uint8_t vonal1_hatso = '?';
+uint8_t vonal2_hatso = '?';
+uint8_t vonal3_hatso = '?';
+uint8_t vonal4_hatso = '?';
+
+uint8_t vonal_eredmeny_elso[33] = { 0 };
+uint8_t vonal_eredmeny_hatso[33] = { 0 };
 int sotet0 = 0;
 int sotet1 = 0;
 int sotet2 = 0;
@@ -332,7 +456,7 @@ static void MX_TIM2_Init(void);
 static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 static void Vonalszenzor_Init(void);
-static void Vonalszenzor_operal(uint8_t teljes_kiolvasott[]);
+static void Vonalszenzor_operal(uint8_t teljes_kiolvasott_elso[], uint8_t teljes_kiolvasott_hatso[]);
 void Vonalszenzor_minta_kuldes(uint8_t minta[]);
 void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny);	//aktualisan chip selectelt adc-bol parameterben adott chanelen olvas; ret: [0, 3]
 /* USER CODE END PFP */
@@ -492,27 +616,44 @@ int main(void)
 		kapu4 = kapuk[4];				ez a resz itt valahogy gebaszt okoz, akasztja a while-t
 		kapu5 = kapuk[5];*/
 
-		for(int i=0; i < 5; i++) {		/* 5: vonalak[] merete */
-			vonalak[i] = '-';
+		for(int i=0; i < 5; i++) {		/* 5: vonalak_elso[] es _hatso merete */
+			vonalak_elso[i] = '-';
+			vonalak_hatso[i] = '-';
 		}
-		for(int i=1; i < 33; i++) {		/* 32: vonal_eredmeny[] merete */
-			vonal_eredmeny[i] = '-';
+		for(int i=1; i < 33; i++) {		/* 1-32: vonal_eredmeny_elso[] es _hatso merete; 0. elem az fix 0 erteku */
+			vonal_eredmeny_elso[i] = '-';
+			vonal_eredmeny_hatso[i] = '-';
 		}
-		Vonalszenzor_operal(vonal_eredmeny);
+
+		Vonalszenzor_operal(vonal_eredmeny_elso, vonal_eredmeny_hatso);
 		for(int poz=1; poz < 33-1; poz++) {
 		// 33 -1: 31-ig megyunk, mert a 32. sosem lehet egy 2 szeles vonal jobb szele
-			if(vonal_eredmeny[poz] > VONAL_THRESHOLD) {
-				if(vonal_eredmeny[poz+1] > VONAL_THRESHOLD) {
-					if(vonal_eredmeny[poz-1] < VONAL_THRESHOLD) {
+			if(vonal_eredmeny_elso[poz] > VONAL_THRESHOLD) {
+				if(vonal_eredmeny_elso[poz+1] > VONAL_THRESHOLD) {
+					if(vonal_eredmeny_elso[poz-1] < VONAL_THRESHOLD) {
 						int i = 0;
-							while(vonalak[i] != '-') {
+							while(vonalak_elso[i] != '-') {
 								i++;
 							}
-							vonalak[i] = poz;
+							vonalak_elso[i] = poz;
 					}
 				}
 			}
 		}
+		for(int poz=1; poz < 33-1; poz++) {
+				// 33 -1: 31-ig megyunk, mert a 32. sosem lehet egy 2 szeles vonal jobb szele
+					if(vonal_eredmeny_hatso[poz] > VONAL_THRESHOLD) {
+						if(vonal_eredmeny_hatso[poz+1] > VONAL_THRESHOLD) {
+							if(vonal_eredmeny_hatso[poz-1] < VONAL_THRESHOLD) {
+								int i = 0;
+									while(vonalak_hatso[i] != '-') {
+										i++;
+									}
+									vonalak_hatso[i] = poz;
+							}
+						}
+					}
+				}
 		/*sotet0 = vonal_eredmeny[0];
 		sotet1 = vonal_eredmeny[1];
 		sotet2 = vonal_eredmeny[2];
@@ -545,11 +686,16 @@ int main(void)
 		sotet29 = vonal_eredmeny[29];
 		sotet30 = vonal_eredmeny[30];
 		sotet31 = vonal_eredmeny[31];
-		vonal0 = vonalak[0];
-		vonal1 = vonalak[1];
-		vonal2 = vonalak[2];
-		vonal3 = vonalak[3];
-		vonal4 = vonalak[4];*/
+		vonal0_elso = vonalak_elso[0];
+		vonal1_elso = vonalak_elso[1];
+		vonal2_elso = vonalak_elso[2];
+		vonal3_elso = vonalak_elso[3];
+		vonal4_elso = vonalak_elso[4];
+		vonal0_hatso = vonalak_hatso[0];
+		vonal1_hatso = vonalak_hatso[1];
+		vonal2_hatso = vonalak_hatso[2];
+		vonal3_hatso = vonalak_hatso[3];
+		vonal4_hatso = vonalak_hatso[4];*/
 
 
 		//Bluetooth iras/olvasas logika
@@ -574,19 +720,19 @@ int main(void)
 		//Szervo
 		if (btnEnable == 1) {
 			if (szervoEnable == 1) {
-				if 			(0 <= vonal1 && vonal1 < 6) {
+				if 			(0 <= vonal1_elso && vonal1_elso < 6) {
 					SERVO_MoveTo(SZERVO, 0);
 					//motornak nagyon lassu megadas
-				} else if 	(6 <= vonal1 && vonal1 < 13) {
+				} else if 	(6 <= vonal1_elso && vonal1_elso < 13) {
 					SERVO_MoveTo(SZERVO, 60);
 					//motornak lassu megadas
-				} else if 	(13 <= vonal1 && vonal1 < 19) {
+				} else if 	(13 <= vonal1_elso && vonal1_elso < 19) {
 					SERVO_MoveTo(SZERVO, 90);
 					//motornak gyors megadas
-				} else if 	(19 <= vonal1 && vonal1 < 26) {
+				} else if 	(19 <= vonal1_elso && vonal1_elso < 26) {
 					SERVO_MoveTo(SZERVO, 120);
 					//motornak lassu megadas
-				} else if 	(26 <= vonal1 && vonal1 < 32) {
+				} else if 	(26 <= vonal1_elso && vonal1_elso < 32) {
 					SERVO_MoveTo(SZERVO, 180);
 					//motornak nagyon lassu megadas
 				}
@@ -1347,111 +1493,216 @@ static void Vonalszenzor_Init(void) {
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);	// PCB2: Von_OE2  0
 }
 
-static void Vonalszenzor_operal(uint8_t* teljes_kiolvasott) {
+static void Vonalszenzor_operal(uint8_t* teljes_kiolvasott_elso, uint8_t* teljes_kiolvasott_hatso) {
 	Vonalszenzor_minta_kuldes(leszed);
 	uint8_t eredmeny_16bit_temp[2] = {0b1110000, 0b00000000};
-
+	//elso vonalszenzor
 	Vonalszenzor_minta_kuldes(minta1_adc1e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel0, eredmeny_16bit_temp);
-	teljes_kiolvasott[1] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[1] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel4, eredmeny_16bit_temp);
-	teljes_kiolvasott[5] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[5] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta1_adc2e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel0, eredmeny_16bit_temp);
-	teljes_kiolvasott[9] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[9] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel4, eredmeny_16bit_temp);
-	teljes_kiolvasott[13] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[13] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta1_adc3e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel0, eredmeny_16bit_temp);
-	teljes_kiolvasott[17] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[17] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel4, eredmeny_16bit_temp);
-	teljes_kiolvasott[21] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[21] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta1_adc4e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel0, eredmeny_16bit_temp);
-	teljes_kiolvasott[25] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[25] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel4, eredmeny_16bit_temp);
-	teljes_kiolvasott[29] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[29] = (uint8_t) eredmeny_16bit_temp[0];
 	//HAL_Delay(200);
 	Vonalszenzor_minta_kuldes(leszed);
 
 	Vonalszenzor_minta_kuldes(minta2_adc1e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel1, eredmeny_16bit_temp);
-	teljes_kiolvasott[2] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[2] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel5, eredmeny_16bit_temp);
-	teljes_kiolvasott[6] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[6] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta2_adc2e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel1, eredmeny_16bit_temp);
-	teljes_kiolvasott[10] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[10] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel5, eredmeny_16bit_temp);
-	teljes_kiolvasott[14] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[14] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta2_adc3e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel1, eredmeny_16bit_temp);
-	teljes_kiolvasott[18] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[18] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel5, eredmeny_16bit_temp);
-	teljes_kiolvasott[22] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[22] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta2_adc4e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel1, eredmeny_16bit_temp);
-	teljes_kiolvasott[26] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[26] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel5, eredmeny_16bit_temp);
-	teljes_kiolvasott[30] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[30] = (uint8_t) eredmeny_16bit_temp[0];
 	//HAL_Delay(200);
 	Vonalszenzor_minta_kuldes(leszed);
 
 	Vonalszenzor_minta_kuldes(minta3_adc1e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel2, eredmeny_16bit_temp);
-	teljes_kiolvasott[3] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[3] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel6, eredmeny_16bit_temp);
-	teljes_kiolvasott[7] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[7] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta3_adc2e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel2, eredmeny_16bit_temp);
-	teljes_kiolvasott[11] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[11] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel6, eredmeny_16bit_temp);
-	teljes_kiolvasott[15] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[15] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta3_adc3e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel2, eredmeny_16bit_temp);
-	teljes_kiolvasott[19] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[19] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel6, eredmeny_16bit_temp);
-	teljes_kiolvasott[23] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[23] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta3_adc4e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel2, eredmeny_16bit_temp);
-	teljes_kiolvasott[27] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[27] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel6, eredmeny_16bit_temp);
-	teljes_kiolvasott[31] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[31] = (uint8_t) eredmeny_16bit_temp[0];
 	//HAL_Delay(200);
 	Vonalszenzor_minta_kuldes(leszed);
 
 	Vonalszenzor_minta_kuldes(minta4_adc1e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel3, eredmeny_16bit_temp);
-	teljes_kiolvasott[4] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[4] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel7, eredmeny_16bit_temp);
-	teljes_kiolvasott[8] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[8] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta4_adc2e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel3, eredmeny_16bit_temp);
-	teljes_kiolvasott[12] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[12] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel7, eredmeny_16bit_temp);
-	teljes_kiolvasott[16] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[16] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta4_adc3e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel3, eredmeny_16bit_temp);
-	teljes_kiolvasott[20] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[20] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel7, eredmeny_16bit_temp);
-	teljes_kiolvasott[24] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[24] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta4_adc4e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel3, eredmeny_16bit_temp);
-	teljes_kiolvasott[28] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[28] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel7, eredmeny_16bit_temp);
-	teljes_kiolvasott[32] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_elso[32] = (uint8_t) eredmeny_16bit_temp[0];
+	//HAL_Delay(200);
+	Vonalszenzor_minta_kuldes(leszed);
+
+	//hatso vonalszenzor
+	Vonalszenzor_minta_kuldes(minta1_adc1h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel0, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[1] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel4, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[5] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(minta1_adc2h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel0, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[9] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel4, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[13] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(minta1_adc3h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel0, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[17] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel4, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[21] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(minta1_adc4h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel0, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[25] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel4, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[29] = (uint8_t) eredmeny_16bit_temp[0];
+	//HAL_Delay(200);
+	Vonalszenzor_minta_kuldes(leszed);
+
+	Vonalszenzor_minta_kuldes(minta2_adc1h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel1, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[2] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel5, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[6] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(minta2_adc2h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel1, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[10] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel5, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[14] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(minta2_adc3h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel1, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[18] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel5, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[22] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(minta2_adc4h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel1, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[26] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel5, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[30] = (uint8_t) eredmeny_16bit_temp[0];
+	//HAL_Delay(200);
+	Vonalszenzor_minta_kuldes(leszed);
+
+	Vonalszenzor_minta_kuldes(minta3_adc1h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel2, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[3] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel6, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[7] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(minta3_adc2h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel2, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[11] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel6, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[15] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(minta3_adc3h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel2, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[19] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel6, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[23] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(minta3_adc4h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel2, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[27] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel6, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[31] = (uint8_t) eredmeny_16bit_temp[0];
+	//HAL_Delay(200);
+	Vonalszenzor_minta_kuldes(leszed);
+
+	Vonalszenzor_minta_kuldes(minta4_adc1h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel3, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[4] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel7, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[8] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(minta4_adc2h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel3, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[12] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel7, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[16] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(minta4_adc3h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel3, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[20] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel7, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[24] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(minta4_adc4h);
+	Vonalszenzor_meres_kiolvasas(adc_chanel3, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[28] = (uint8_t) eredmeny_16bit_temp[0];
+	Vonalszenzor_meres_kiolvasas(adc_chanel7, eredmeny_16bit_temp);
+	teljes_kiolvasott_hatso[32] = (uint8_t) eredmeny_16bit_temp[0];
 	//HAL_Delay(200);
 	Vonalszenzor_minta_kuldes(leszed);
 }
