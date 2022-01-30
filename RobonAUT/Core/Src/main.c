@@ -344,6 +344,7 @@ int vonal_kovetni_hatso = 0;
 
 int cel = 0;
 int szervoTeszt = -1;
+double kormanyzas_agresszivitas = 0.5;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[
 /*int sotet0 = 0;
 int sotet1 = 0;
 int sotet2 = 0;
@@ -694,8 +695,8 @@ int main(void)
 		//Szervo
 		if (btnEnable == 1) {
 			if (szervoEnable == 1) {
-				cel = (vonal_kovetni_elso) + 	(((vonal_kovetni_elso) - (vonal_kovetni_hatso))
-																			/ 2);	//fel auto tavolsagra. ezt novelni kell (?) hogy agresszivabban kanyarodjon
+				cel = (vonal_kovetni_elso) + 	(((vonal_kovetni_elso) - (vonal_kovetni_hatso)) *kormanyzas_agresszivitas);
+				//fel auto tavolsagra vetit ki. ezt novelni kell (?) hogy agresszivabban kanyarodjon
 				if(cel < -30) {
 					SERVO_MoveTo(SZERVO, 0);
 					szervoTeszt = 0;
@@ -1711,8 +1712,10 @@ void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny) {
 }
 
 void Kovetendo_vonal_valaszto(int* elso, int* hatso) {
-	*elso = vonalak_elso[0] - 16;		//ez elvileg jo 1 - 1 erzekelt vonalra
-	*hatso = vonalak_hatso[0] - 16;
+	if(vonalak_elso[0] < 33)				//kulonben '-' van benne, ami 45
+		*elso = vonalak_elso[0] - 16;		//ez elvileg jo 1 - 1 erzekelt vonalra
+	if(vonalak_hatso[0] < 33)
+		*hatso = vonalak_hatso[0] - 16;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
