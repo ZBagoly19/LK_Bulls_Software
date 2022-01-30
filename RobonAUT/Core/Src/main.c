@@ -68,8 +68,8 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint8_t btnEnable = 0;
-uint8_t szervoEnable = 0;
+uint8_t btnEnable = 1;
+uint8_t szervoEnable = 1;
 uint8_t motvezEnable = 0;
 
 //Lehet, hogy az adc CS-ek alapbol 1-ben kell legyenek es 0-val vannak selectalva
@@ -80,41 +80,6 @@ uint8_t leszed[] = { 	0b00000000,		//32 led minta eleje
 						0b00000000,		//32 led minta vege
 						0b11111111,		//8 vezerlojel az U6-ba
 						0b11111111		//8 vezerlojel az U5-be
-};
-uint8_t minta0[] = { 	0b11111100,		//32 led minta eleje
-						0b11111000,		//
-						0b11110000,		//
-						0b11100010,		//32 led minta vege
-						0b00001111,		//8 vezerlojel az U6-ba: elolso v.sz.
-						0b00001111		//8 vezerlojel az U5-be: hatulso v.sz.
-};
-uint8_t minta1[] = { 	0b10001000,		//32 led minta eleje
-						0b10001000,		//
-						0b10001000,		//
-						0b10001000,		//32 led minta vege
-						0b00001111,		//8 vezerlojel az U6-ba
-						0b00001111		//8 vezerlojel az U5-be
-};
-uint8_t minta2[] = { 	0b01000100,		//32 led minta eleje
-						0b01000100,		//
-						0b01000100,		//
-						0b01000100,		//32 led minta vege
-						0b00001111,		//8 vezerlojel az U6-ba
-						0b00001111		//8 vezerlojel az U5-be
-};
-uint8_t minta3[] = { 	0b00100010,		//32 led minta eleje
-						0b00100010,		//
-						0b00100010,		//
-						0b00100010,		//32 led minta vege
-						0b00001111,		//8 vezerlojel az U6-ba
-						0b00001111		//8 vezerlojel az U5-be
-};
-uint8_t minta4[] = { 	0b00010001,		//32 led minta eleje
-						0b00010001,		//
-						0b00010001,		//
-						0b00010001,		//32 led minta vege
-						0b00001111,		//8 vezerlojel az U6-ba
-						0b00001111		//8 vezerlojel az U5-be
 };
 
 //első minták
@@ -355,7 +320,7 @@ uint8_t adc_chanel5 =	0b00101000;		//input chanel 5; minta2-nel kell
 uint8_t adc_chanel6 =	0b00110000;		//input chanel 6; minta3-nel kell
 uint8_t adc_chanel7 =	0b00111000;		//input chanel 7; minta4-nel kell
 
-int VONAL_THRESHOLD = 6;
+double VONAL_THRESHOLD = 4.5;
 
 uint8_t vonalak_elso[5] = { '-' };
 uint8_t vonal0_elso = '?';
@@ -373,7 +338,13 @@ uint8_t vonal4_hatso = '?';
 
 uint8_t vonal_eredmeny_elso[33] = { 0 };
 uint8_t vonal_eredmeny_hatso[33] = { 0 };
-int sotet0 = 0;
+
+int vonal_kovetni_elso = 0;
+int vonal_kovetni_hatso = 0;
+
+int cel = 0;
+int szervoTeszt = -1;
+/*int sotet0 = 0;
 int sotet1 = 0;
 int sotet2 = 0;
 int sotet3 = 0;
@@ -404,9 +375,9 @@ int sotet27 = 0;
 int sotet28 = 0;
 int sotet29 = 0;
 int sotet30 = 0;
-int sotet31 = 0;
+int sotet31 = 0;*/
 
-int motvez_d = 1024;
+int motvez_d = 1023;
 
 int bluetooth_flag = 0;
 int bluetooth_j = 0;
@@ -459,6 +430,7 @@ static void Vonalszenzor_Init(void);
 static void Vonalszenzor_operal(uint8_t teljes_kiolvasott_elso[], uint8_t teljes_kiolvasott_hatso[]);
 void Vonalszenzor_minta_kuldes(uint8_t minta[]);
 void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny);	//aktualisan chip selectelt adc-bol parameterben adott chanelen olvas; ret: [0, 3]
+void Kovetendo_vonal_valaszto(int* elso, int* hatso);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -632,28 +604,30 @@ int main(void)
 				if(vonal_eredmeny_elso[poz+1] > VONAL_THRESHOLD) {
 					if(vonal_eredmeny_elso[poz-1] < VONAL_THRESHOLD) {
 						int i = 0;
-							while(vonalak_elso[i] != '-') {
-								i++;
-							}
-							vonalak_elso[i] = poz;
+						while(vonalak_elso[i] != '-') {
+							i++;
+						}
+						vonalak_elso[i] = poz;
 					}
 				}
 			}
 		}
 		for(int poz=1; poz < 33-1; poz++) {
-				// 33 -1: 31-ig megyunk, mert a 32. sosem lehet egy 2 szeles vonal jobb szele
-					if(vonal_eredmeny_hatso[poz] > VONAL_THRESHOLD) {
-						if(vonal_eredmeny_hatso[poz+1] > VONAL_THRESHOLD) {
-							if(vonal_eredmeny_hatso[poz-1] < VONAL_THRESHOLD) {
-								int i = 0;
-									while(vonalak_hatso[i] != '-') {
-										i++;
-									}
-									vonalak_hatso[i] = poz;
-							}
+		// 33 -1: 31-ig megyunk, mert a 32. sosem lehet egy 2 szeles vonal jobb szele
+			if(vonal_eredmeny_hatso[poz] > VONAL_THRESHOLD) {
+				if(vonal_eredmeny_hatso[poz+1] > VONAL_THRESHOLD) {
+					if(vonal_eredmeny_hatso[poz-1] < VONAL_THRESHOLD) {
+						int i = 0;
+						while(vonalak_hatso[i] != '-') {
+							i++;
 						}
+						vonalak_hatso[i] = poz;
 					}
 				}
+			}
+		}
+		Kovetendo_vonal_valaszto(&vonal_kovetni_elso, &vonal_kovetni_hatso);
+
 		/*sotet0 = vonal_eredmeny[0];
 		sotet1 = vonal_eredmeny[1];
 		sotet2 = vonal_eredmeny[2];
@@ -720,7 +694,22 @@ int main(void)
 		//Szervo
 		if (btnEnable == 1) {
 			if (szervoEnable == 1) {
-				if 			(0 <= vonal1_elso && vonal1_elso < 6) {
+				cel = (vonal_kovetni_elso) + 	(((vonal_kovetni_elso) - (vonal_kovetni_hatso))
+																			/ 2);	//fel auto tavolsagra. ezt novelni kell (?) hogy agresszivabban kanyarodjon
+				if(cel < -30) {
+					SERVO_MoveTo(SZERVO, 0);
+					szervoTeszt = 0;
+				}
+				else if(30 < cel) {
+					SERVO_MoveTo(SZERVO, 180);
+					szervoTeszt = 180;
+				}
+				else {
+					SERVO_MoveTo(SZERVO, 90 + cel *3);
+					szervoTeszt = 90 + cel *3;
+				}
+
+				/*if 			(0 <= vonal1_elso && vonal1_elso < 6) {
 					SERVO_MoveTo(SZERVO, 0);
 					//motornak nagyon lassu megadas
 				} else if 	(6 <= vonal1_elso && vonal1_elso < 13) {
@@ -735,13 +724,13 @@ int main(void)
 				} else if 	(26 <= vonal1_elso && vonal1_elso < 32) {
 					SERVO_MoveTo(SZERVO, 180);
 					//motornak nagyon lassu megadas
-				}
+				}*/
 			}
 
 			if (motvezEnable == 1) {
-				int k = 200;
+				int k = 100;		// 0 - 1023-ig
 				if (k < motvez_d / 2) {
-					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, k); //ha pwm1 nagyobb, előremenet
+					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, k); // ha pwm1 nagyobb, előremenet?
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - k);
 				}
 			}
@@ -1719,6 +1708,11 @@ void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny) {
 	uint8_t temp1[2]= {chanel,0};
 	HAL_SPI_Transmit(&hspi1, temp1, 2, 100);
 	HAL_SPI_Receive(&hspi1, eredmeny, 2, 100);
+}
+
+void Kovetendo_vonal_valaszto(int* elso, int* hatso) {
+	*elso = vonalak_elso[0] - 16;		//ez elvileg jo 1 - 1 erzekelt vonalra
+	*hatso = vonalak_hatso[0] - 16;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
