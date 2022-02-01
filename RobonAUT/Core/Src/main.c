@@ -347,7 +347,7 @@ int cel = 0;
 int szervoTeszt = 200;
 int szervoSzog = 90;
 int szervoSzog_emlek = 90;
-double kormanyzas_agresszivitas = 1.25;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[
+double kormanyzas_agresszivitas = 0.9;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[
 
 
 int motvez_d = 1023;
@@ -638,9 +638,7 @@ int main(void)
 					szervoSzog = 90 + cel *3;
 					szervoTeszt = 90 + cel *3;
 				}
-				if(szervoSzog - szervoSzog_emlek < 30 && szervoSzog - szervoSzog_emlek > -30) {
-					szervoSzog_emlek = szervoSzog;
-				}
+
 				SERVO_MoveTo(SZERVO, szervoSzog);
 
 				/*if 			(0 <= vonal1_elso && vonal1_elso < 6) {
