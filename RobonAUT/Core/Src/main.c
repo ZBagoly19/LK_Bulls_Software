@@ -366,13 +366,10 @@ int bluetooth_len = 0;
 char bluetooth_buffer[100] = { 0 };
 int bluetooth_i = 0;
 
-uint8_t kapuk[6] = { '-' };
-uint8_t kapu0 = '?';
-uint8_t kapu1 = '?';
-uint8_t kapu2 = '?';
-uint8_t kapu3 = '?';
-uint8_t kapu4 = '?';
-uint8_t kapu5 = '?';
+uint8_t kapuk[6] = { 0 };
+uint8_t temp_radio = '?';
+uint8_t letsGo = 0;
+
 
 //Tavolsagszenzor I2C addresses of GPIO expanders on the X-NUCLEO-53L1A1
 //ezek nem jok
@@ -493,7 +490,7 @@ int main(void)
 
 	HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_2);   //PWM jel start
 
-	//Vonalszenzor init
+	//Vonalszenzor inicializacio
 	Vonalszenzor_Init();
 
 
@@ -544,24 +541,21 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-	//uint8_t temp_radio = '?';
 	while (1) {
 		//radios modul
-		/*temp_radio = '?';
-		HAL_UART_Receive(&huart1, &temp_radio, 1, 5000);
-		int i = 0;
-		while(temp_radio != 0x10 && i < 6) {		*//* 0x10: \n karakter; 6: kapuk[] merete*//*
+		for(int i=0; i < 6; i++) {
+			HAL_UART_Receive(&huart1, &temp_radio, 1, 2000);
+			if(temp_radio == 0x30)
+				letsGo = 1;
+			if(temp_radio < 0x60 && 0x40 < temp_radio) {
+				i = 0;
+				for(int j=0; j < 6; j++)
+					kapuk[j] = '-';
+			}
 			kapuk[i] = temp_radio;
-			i++;
-			HAL_UART_Receive(&huart1, &temp_radio, 1, 5000);
 		}
-		kapu0 = kapuk[0];
-		kapu1 = kapuk[1];
-		kapu2 = kapuk[2];
-		kapu3 = kapuk[3];
-		kapu4 = kapuk[4];				ez a resz itt valahogy gebaszt okoz, akasztja a while-t
-		kapu5 = kapuk[5];*/
 
+		// vonal szenzor
 		for(int i=0; i < 5; i++) {		/* 5: vonalak_elso[] es _hatso merete */
 			vonalak_h[i] = '-';
 			vonalak_e[i] = '-';
