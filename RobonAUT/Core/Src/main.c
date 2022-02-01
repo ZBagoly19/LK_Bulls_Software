@@ -340,14 +340,14 @@ uint8_t vonal4_e = '?';
 uint8_t vonal_eredmeny_h[33] = { 0 };
 uint8_t vonal_eredmeny_e[33] = { 0 };
 
-int vonal_kovetni_h = 0;
-int vonal_kovetni_e = 0;
+double vonal_kovetni_h = 0;
+double vonal_kovetni_e = 0;
 
 int cel = 0;
 int szervoTeszt = 200;
 int szervoSzog = 90;
 int szervoSzog_emlek = 90;
-double kormanyzas_agresszivitas = 0.9;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[
+double kormanyzas_agresszivitas = 0.5;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[
 
 
 int motvez_d = 1023;
@@ -400,7 +400,7 @@ static void Vonalszenzor_Init(void);
 static void Vonalszenzor_operal(uint8_t teljes_kiolvasott_h[], uint8_t teljes_kiolvasott_e[]);
 void Vonalszenzor_minta_kuldes(uint8_t minta[]);
 void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny);	//aktualisan chip selectelt adc-bol parameterben adott chanelen olvas; ret: [0, 3]
-void Kovetendo_vonal_valaszto(int* elso, int* hatso);
+void Kovetendo_vonal_valaszto(double* elso, double* hatso);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -543,7 +543,7 @@ int main(void)
 
 	while (1) {
 		//radios modul
-		for(int i=0; i < 6; i++) {
+		/*for(int i=0; i < 6; i++) {
 			HAL_UART_Receive(&huart1, &temp_radio, 1, 2000);
 			if(temp_radio == 0x30)
 				letsGo = 1;
@@ -553,7 +553,7 @@ int main(void)
 					kapuk[j] = '-';
 			}
 			kapuk[i] = temp_radio;
-		}
+		}*/
 
 		// vonal szenzor
 		for(int i=0; i < 5; i++) {		/* 5: vonalak_elso[] es _hatso merete */
@@ -594,7 +594,7 @@ int main(void)
 				}
 			}
 		}
-		Kovetendo_vonal_valaszto(&vonal_kovetni_h, &vonal_kovetni_e);
+		Kovetendo_vonal_valaszto(&vonal_kovetni_e, &vonal_kovetni_h);
 
 
 		//Bluetooth iras/olvasas logika
@@ -1646,11 +1646,24 @@ void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny) {
 	HAL_SPI_Receive(&hspi1, eredmeny, 2, 100);
 }
 
-void Kovetendo_vonal_valaszto(int* elso, int* hatso) {
-	if(vonalak_h[0] < 33)				//kulonben '-' van benne, ami 45
-		*elso = vonalak_h[0] - 16;		//ez elvileg jo 1 - 1 erzekelt vonalra
-	if(vonalak_e[0] < 33)
-		*hatso = vonalak_e[0] - 16;
+void Kovetendo_vonal_valaszto(double* elso, double* hatso) {
+	double elso_sum = 0.0;
+	double hatso_sum = 0.0;
+	double e_db = 0.0;
+	double h_db = 0.0;
+
+	for(int i=0; i < 5; i++) {				// 6: vonalak[] merete
+		if(vonalak_e[i] < 33) {				// kulonben '-' van benne, ami 45
+			elso_sum += vonalak_e[i] - 16;		// ez elvileg jo 1 - 1 erzekelt vonalra
+			e_db += 1.0;
+		}
+		if(vonalak_h[i] < 33) {				// kulonben '-' van benne, ami 45
+			hatso_sum += vonalak_h[i] - 16;		// ez elvileg jo 1 - 1 erzekelt vonalra
+			h_db += 1.0;
+		}
+	}
+	*elso = elso_sum / e_db;
+	*hatso = hatso_sum / h_db;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
