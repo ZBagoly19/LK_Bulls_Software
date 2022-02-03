@@ -72,7 +72,7 @@ uint8_t btnEnable = 0;
 uint8_t szervoEnable = 1;
 uint8_t motvezEnable = 1;
 
-//Lehet, hogy az adc CS-ek alapbol 1-ben kell legyenek es 0-val vannak selectalva
+
 //Minden uj minta utan ki kell kuldeni
 uint8_t leszed[] = { 	0b00000000,		//32 led minta eleje
 						0b00000000,		//
@@ -324,18 +324,7 @@ double VONAL_THRESHOLD_H = 9.0;
 double VONAL_THRESHOLD_E = 7.0;
 
 uint8_t vonalak_h[5] = { '-' };
-uint8_t vonal0_h = '?';
-uint8_t vonal1_h = '?';
-uint8_t vonal2_h = '?';
-uint8_t vonal3_h = '?';
-uint8_t vonal4_h = '?';
-
 uint8_t vonalak_e[5] = { '-' };
-uint8_t vonal0_e = '?';
-uint8_t vonal1_e = '?';
-uint8_t vonal2_e = '?';
-uint8_t vonal3_e = '?';
-uint8_t vonal4_e = '?';
 
 uint8_t vonal_eredmeny_h[33] = { 0 };
 uint8_t vonal_eredmeny_e[33] = { 0 };
@@ -344,7 +333,6 @@ double vonal_kovetni_h = 0;
 double vonal_kovetni_e = 0;
 
 int cel = 0;
-int szervoTeszt = 200;
 int szervoSzog = 90;
 int szervoSzog_emlek = 90;
 double kormanyzas_agresszivitas = 0.5;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[
@@ -369,6 +357,9 @@ int bluetooth_i = 0;
 uint8_t kapuk[6] = { 0 };
 uint8_t temp_radio = '?';
 uint8_t letsGo = 0;
+
+
+uint8_t timer_counter = 0;
 
 
 //Tavolsagszenzor I2C addresses of GPIO expanders on the X-NUCLEO-53L1A1
@@ -399,7 +390,10 @@ static void MX_SPI1_Init(void);
 static void Vonalszenzor_Init(void);
 static void Vonalszenzor_operal(uint8_t teljes_kiolvasott_h[], uint8_t teljes_kiolvasott_e[]);
 void Vonalszenzor_minta_kuldes(uint8_t minta[]);
+void Vonalas_tombok_torlese(void);
 void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny);	//aktualisan chip selectelt adc-bol parameterben adott chanelen olvas; ret: [0, 3]
+void Vonalas_tombok_feltoltese(void);
+void Szervo_szog_beallit(void);
 void Kovetendo_vonal_valaszto(double* elso, double* hatso);
 /* USER CODE END PFP */
 
@@ -418,16 +412,26 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
-	/*if (htim == &htim2) {
-		//itt kell kiirni amire kivancsiak vagyunk a stringben
-		sprintf(bluetooth_buffer,
+	if (htim == &htim2) {
+		timer_counter += 1;
+		if(99 < timer_counter) {
+			Vonalas_tombok_torlese();
+			Vonalszenzor_operal(vonal_eredmeny_h, vonal_eredmeny_e);
+			Vonalas_tombok_feltoltese();
+			Kovetendo_vonal_valaszto(&vonal_kovetni_e, &vonal_kovetni_h);
+			Szervo_szog_beallit();
+			timer_counter = 0;
+		}
+
+		//itt kell kiirni amire kivancsiak vagyunk a stringben*/
+		/*sprintf(bluetooth_buffer,
 				"%i -edik uzenet \t kivant sebesseg: %i \t allapot: %c kanyar/egyenes: %c \r\n",
 				bluetooth_i, kivant_sebesseg, sc_vagy_gyorskor,
 				kanyarban_vagy_egyenes);
 		bluetooth_i++;
 		bluetooth_len = strlen(bluetooth_buffer);
-		//HAL_UART_Transmit(&huart2, bluetooth_buffer, bluetooth_len, 100);
-	}*/
+		//HAL_UART_Transmit(&huart2, bluetooth_buffer, bluetooth_len, 100);*/
+	}
 }
 /* USER CODE END 0 */
 
@@ -544,7 +548,7 @@ int main(void)
 	while (1) {
 		//radios modul
 		/*for(int i=0; i < 6; i++) {
-			HAL_UART_Receive(&huart1, &temp_radio, 1, 2000);
+			HAL_UART_Receive(&huart1, &temp_radio, 1, 2000);	//ez nagyon nagyon hosszu, all miatta a while(1)
 			if(temp_radio == 0x30)
 				letsGo = 1;
 			if(temp_radio < 0x60 && 0x40 < temp_radio) {
@@ -554,51 +558,6 @@ int main(void)
 			}
 			kapuk[i] = temp_radio;
 		}*/
-
-		// vonal szenzor
-		for(int i=0; i < 5; i++) {		/* 5: vonalak_elso[] es _hatso merete */
-			vonalak_h[i] = '-';
-			vonalak_e[i] = '-';
-		}
-		for(int i=1; i < 33; i++) {		/* 1-32: vonal_eredmeny_elso[] es _hatso merete; 0. elem az fix 0 erteku */
-			vonal_eredmeny_h[i] = 0;
-			vonal_eredmeny_e[i] = 0;
-		}
-
-		Vonalszenzor_operal(vonal_eredmeny_h, vonal_eredmeny_e);
-		for(int poz=1; poz < 33-1; poz++) {
-		// 33 -1: 31-ig megyunk, mert a 32. sosem lehet egy 2 szeles vonal jobb szele
-			if(vonal_eredmeny_h[poz] > VONAL_THRESHOLD_H) {
-				if(vonal_eredmeny_h[poz+1] > VONAL_THRESHOLD_H) {
-					if(vonal_eredmeny_h[poz-1] < VONAL_THRESHOLD_H) {
-						int i = 0;
-						while(vonalak_h[i] != '-') {
-							i++;
-						}
-						vonalak_h[i] = poz;
-					}
-				}
-			}
-		}
-		for(int poz=1; poz < 33-1; poz++) {
-		// 33 -1: 31-ig megyunk, mert a 32. sosem lehet egy 2 szeles vonal jobb szele
-			if(vonal_eredmeny_e[poz] > VONAL_THRESHOLD_E) {
-				if(vonal_eredmeny_e[poz+1] > VONAL_THRESHOLD_E) {
-					if(vonal_eredmeny_e[poz-1] < VONAL_THRESHOLD_E) {
-						int i = 0;
-						while(vonalak_e[i] != '-') {
-							i++;
-						}
-						vonalak_e[i] = poz;
-					}
-				}
-			}
-		}
-		Kovetendo_vonal_valaszto(&vonal_kovetni_e, &vonal_kovetni_h);
-
-
-		//Bluetooth iras/olvasas logika
-		//HC05 Module-ban van puska
 
     /* USER CODE END WHILE */
 
@@ -617,42 +576,9 @@ int main(void)
 		VL53L1_ClearInterruptAndStartMeasurement( Dev );
 
 		//Szervo
+		Szervo_szog_beallit();
+
 		if (btnEnable == 1) {
-			if (szervoEnable == 1) {
-				cel = (vonal_kovetni_e) + 	(((vonal_kovetni_e) - (vonal_kovetni_h)) *kormanyzas_agresszivitas);
-				//fel auto tavolsagra vetit ki. ezt novelni kell (?) hogy agresszivabban kanyarodjon
-				if(cel < -30) {
-					szervoSzog = 0;
-					szervoTeszt = 0;
-				}
-				else if(30 < cel) {
-					szervoSzog = 180;
-					szervoTeszt = 180;
-				} else {
-					szervoSzog = 90 + cel *3;
-					szervoTeszt = 90 + cel *3;
-				}
-
-				SERVO_MoveTo(SZERVO, szervoSzog);
-
-				/*if 			(0 <= vonal1_elso && vonal1_elso < 6) {
-					SERVO_MoveTo(SZERVO, 0);
-					//motornak nagyon lassu megadas
-				} else if 	(6 <= vonal1_elso && vonal1_elso < 13) {
-					SERVO_MoveTo(SZERVO, 60);
-					//motornak lassu megadas
-				} else if 	(13 <= vonal1_elso && vonal1_elso < 19) {
-					SERVO_MoveTo(SZERVO, 90);
-					//motornak gyors megadas
-				} else if 	(19 <= vonal1_elso && vonal1_elso < 26) {
-					SERVO_MoveTo(SZERVO, 120);
-					//motornak lassu megadas
-				} else if 	(26 <= vonal1_elso && vonal1_elso < 32) {
-					SERVO_MoveTo(SZERVO, 180);
-					//motornak nagyon lassu megadas
-				}*/
-			}
-
 			if (motvezEnable == 1) {
 				/*for(int k = 500; k > 250; k-=5) {
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, k); // ha pwm1 nagyobb, hatramenet
@@ -665,14 +591,14 @@ int main(void)
 					HAL_Delay(200);
 				}*/
 				int k = 420;		// 0 - 1023-ig 410 a minimum, az alatt karos a motornak
-				if (k < motvez_d / 2) {						// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
-					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, k); 	// ha pwm1 nagyobb, hatramenet
+				if (k < motvez_d / 2) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
+					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, k); 		// ha pwm1 nagyobb, hatramenet
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - k);
 				}
 			}
 		} else {
 			SERVO_MoveTo(SZERVO, 90);
-			DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_d / 2);// elvileg ez a ketto a megallas
+			DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_d / 2);	// ez a ketto a megallas
 			DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - (motvez_d / 2));
 		}
 	}
@@ -964,9 +890,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 8000-1;
+  htim2.Init.Prescaler = 500-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 1000;
+  htim2.Init.Period = 90-1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -1640,10 +1566,52 @@ void Vonalszenzor_minta_kuldes(uint8_t* minta) {
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);		// PB1: Von_latch2  1
 }
 
+void Vonalas_tombok_torlese(void) {
+	for(int i=0; i < 5; i++) {		/* 5: vonalak_elso[] es _hatso merete */
+		vonalak_h[i] = '-';
+		vonalak_e[i] = '-';
+	}
+	for(int i=1; i < 33; i++) {		/* 1-32: vonal_eredmeny_elso[] es _hatso merete; 0. elem az fix 0 erteku */
+		vonal_eredmeny_h[i] = 0;
+		vonal_eredmeny_e[i] = 0;
+	}
+}
+
 void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny) {
 	uint8_t temp1[2]= {chanel,0};
 	HAL_SPI_Transmit(&hspi1, temp1, 2, 100);
 	HAL_SPI_Receive(&hspi1, eredmeny, 2, 100);
+}
+
+void Vonalas_tombok_feltoltese(void) {
+	for(int poz=1; poz < 33-1; poz++) {
+	// 33 -1: 31-ig megyunk, mert a 32. sosem lehet egy 2 szeles vonal jobb szele
+		if(vonal_eredmeny_h[poz] > VONAL_THRESHOLD_H) {
+			if(vonal_eredmeny_h[poz+1] > VONAL_THRESHOLD_H) {
+				if(vonal_eredmeny_h[poz-1] < VONAL_THRESHOLD_H) {
+					int i = 0;
+					while(vonalak_h[i] != '-') {
+						i++;
+					}
+					vonalak_h[i] = poz;
+				}
+			}
+		}
+	}
+	for(int poz=1; poz < 33-1; poz++) {
+	// 33 -1: 31-ig megyunk, mert a 32. sosem lehet egy 2 szeles vonal jobb szele
+		if(vonal_eredmeny_e[poz] > VONAL_THRESHOLD_E) {
+			if(vonal_eredmeny_e[poz+1] > VONAL_THRESHOLD_E) {
+				if(vonal_eredmeny_e[poz-1] < VONAL_THRESHOLD_E) {
+					int i = 0;
+					while(vonalak_e[i] != '-') {
+						i++;
+					}
+					vonalak_e[i] = poz;
+				}
+			}
+		}
+	}
 }
 
 void Kovetendo_vonal_valaszto(double* elso, double* hatso) {
@@ -1664,6 +1632,31 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso) {
 	}
 	*elso = elso_sum / e_db;
 	*hatso = hatso_sum / h_db;
+}
+
+void Szervo_szog_beallit(void) {
+	if (btnEnable == 1 && szervoEnable == 1) {
+		cel = vonal_kovetni_e + (((vonal_kovetni_e) - (vonal_kovetni_h)) *kormanyzas_agresszivitas);
+		//fel auto tavolsagra vetit ki. ezt novelni kell hogy agresszivabban kanyarodjon
+		if(cel < -15) {
+			szervoSzog = 0;
+		} else if(15 < cel) {
+			szervoSzog = 180;
+		} else {
+			szervoSzog = 90 + cel *6;
+		}
+
+		/*cel = vonal_kovetni_e;
+		if(cel < -15) {
+			szervoSzog = 0;
+		} else if (16 < cel) {
+			szervoSzog = 180;
+		} else {
+			szervoSzog = 90 + cel *6;
+		}*/
+
+		SERVO_MoveTo(SZERVO, szervoSzog);
+	}
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
