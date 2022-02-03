@@ -81,119 +81,126 @@ uint8_t leszed[] = { 	0b00000000,		//32 led minta eleje
 						0b11111111,		//8 vezerlojel az U6-ba
 						0b11111111		//8 vezerlojel az U5-be
 };
+uint8_t teszt_minta[] = { 	0b11111100,		//32 led minta eleje
+							0b11111000,		//
+							0b11110000,		//
+							0b11100000,		//32 led minta vege
+							0b00001111,		//8 vezerlojel az U6-ba
+							0b00001111		//8 vezerlojel az U5-be
+};
 
 //hatso minták
 uint8_t minta4_adc4h[] = { 	0b10001000,		//32 led minta eleje
 							0b10001000,		//
 							0b10001000,		//
 							0b10001000,		//32 led minta vege
-							0b00000111,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01010111,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta4_adc3h[] = { 	0b10001000,		//32 led minta eleje
 							0b10001000,		//
 							0b10001000,		//
 							0b10001000,		//32 led minta vege
-							0b00001011,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01011011,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta4_adc2h[] = { 	0b10001000,		//32 led minta eleje
 							0b10001000,		//
 							0b10001000,		//
 							0b10001000,		//32 led minta vege
-							0b00001101,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01011101,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta4_adc1h[] = { 	0b10001000,		//32 led minta eleje
 							0b10001000,		//
 							0b10001000,		//
 							0b10001000,		//32 led minta vege
-							0b00001110,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01011110,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta3_adc4h[] = { 	0b01000100,		//32 led minta eleje
 							0b01000100,		//
 							0b01000100,		//
 							0b01000100,		//32 led minta vege
-							0b00000111,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01010111,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta3_adc3h[] = { 	0b01000100,		//32 led minta eleje
 							0b01000100,		//
 							0b01000100,		//
 							0b01000100,		//32 led minta vege
-							0b00001011,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01011011,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta3_adc2h[] = { 	0b01000100,		//32 led minta eleje
 							0b01000100,		//
 							0b01000100,		//
 							0b01000100,		//32 led minta vege
-							0b00001101,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01011101,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta3_adc1h[] = { 	0b01000100,		//32 led minta eleje
 							0b01000100,		//
 							0b01000100,		//
 							0b01000100,		//32 led minta vege
-							0b00001110,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01011110,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta2_adc4h[] = { 	0b00100010,		//32 led minta eleje
 							0b00100010,		//
 							0b00100010,		//
 							0b00100010,		//32 led minta vege
-							0b00000111,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01010111,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta2_adc3h[] = { 	0b00100010,		//32 led minta eleje
 							0b00100010,		//
 							0b00100010,		//
 							0b00100010,		//32 led minta vege
-							0b00001011,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01011011,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta2_adc2h[] = { 	0b00100010,		//32 led minta eleje
 							0b00100010,		//
 							0b00100010,		//
 							0b00100010,		//32 led minta vege
-							0b00001101,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01011101,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta2_adc1h[] = { 	0b00100010,		//32 led minta eleje
 							0b00100010,		//
 							0b00100010,		//
 							0b00100010,		//32 led minta vege
-							0b00001110,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01011110,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta1_adc4h[] = { 	0b00010001,		//32 led minta eleje
 							0b00010001,		//
 							0b00010001,		//
 							0b00010001,		//32 led minta vege
-							0b00000111,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01010111,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta1_adc3h[] = { 	0b00010001,		//32 led minta eleje
 							0b00010001,		//
 							0b00010001,		//
 							0b00010001,		//32 led minta vege
-							0b00001011,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01011011,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta1_adc2h[] = { 	0b00010001,		//32 led minta eleje
 							0b00010001,		//
 							0b00010001,		//
 							0b00010001,		//32 led minta vege
-							0b00001101,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01011101,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 uint8_t minta1_adc1h[] = { 	0b00010001,		//32 led minta eleje
 							0b00010001,		//
 							0b00010001,		//
 							0b00010001,		//32 led minta vege
-							0b00001110,		//8 vezerlojel az U6-ba
-							0b00001111		//8 vezerlojel az U5-be
+							0b01011110,		//8 vezerlojel az U6-ba
+							0b01011111		//8 vezerlojel az U5-be
 };
 
 //elso minták
@@ -201,113 +208,113 @@ uint8_t minta4_adc4e[] = { 	0b10001000,		//32 led minta eleje
 							0b10001000,		//
 							0b10001000,		//
 							0b10001000,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00000111		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01010111		//8 vezerlojel az U5-be
 };
 uint8_t minta4_adc3e[] = { 	0b10001000,		//32 led minta eleje
 							0b10001000,		//
 							0b10001000,		//
 							0b10001000,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00001011		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01011011		//8 vezerlojel az U5-be
 };
 uint8_t minta4_adc2e[] = { 	0b10001000,		//32 led minta eleje
 							0b10001000,		//
 							0b10001000,		//
 							0b10001000,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00001101		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01011101		//8 vezerlojel az U5-be
 };
 uint8_t minta4_adc1e[] = { 	0b10001000,		//32 led minta eleje
 							0b10001000,		//
 							0b10001000,		//
 							0b10001000,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00001110		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01011110		//8 vezerlojel az U5-be
 };
 uint8_t minta3_adc4e[] = { 	0b01000100,		//32 led minta eleje
 							0b01000100,		//
 							0b01000100,		//
 							0b01000100,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00000111		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01010111		//8 vezerlojel az U5-be
 };
 uint8_t minta3_adc3e[] = { 	0b01000100,		//32 led minta eleje
 							0b01000100,		//
 							0b01000100,		//
 							0b01000100,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00001011		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01011011		//8 vezerlojel az U5-be
 };
 uint8_t minta3_adc2e[] = { 	0b01000100,		//32 led minta eleje
 							0b01000100,		//
 							0b01000100,		//
 							0b01000100,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00001101		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01011101		//8 vezerlojel az U5-be
 };
 uint8_t minta3_adc1e[] = { 	0b01000100,		//32 led minta eleje
 							0b01000100,		//
 							0b01000100,		//
 							0b01000100,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00001110		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01011110		//8 vezerlojel az U5-be
 };
 uint8_t minta2_adc4e[] = { 	0b00100010,		//32 led minta eleje
 							0b00100010,		//
 							0b00100010,		//
 							0b00100010,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00000111		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01010111		//8 vezerlojel az U5-be
 };
 uint8_t minta2_adc3e[] = { 	0b00100010,		//32 led minta eleje
 							0b00100010,		//
 							0b00100010,		//
 							0b00100010,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00001011		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01011011		//8 vezerlojel az U5-be
 };
 uint8_t minta2_adc2e[] = { 	0b00100010,		//32 led minta eleje
 							0b00100010,		//
 							0b00100010,		//
 							0b00100010,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00001101		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01011101		//8 vezerlojel az U5-be
 };
 uint8_t minta2_adc1e[] = { 	0b00100010,		//32 led minta eleje
 							0b00100010,		//
 							0b00100010,		//
 							0b00100010,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00001110		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01011110		//8 vezerlojel az U5-be
 };
 uint8_t minta1_adc4e[] = { 	0b00010001,		//32 led minta eleje
 							0b00010001,		//
 							0b00010001,		//
 							0b00010001,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00000111		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01010111		//8 vezerlojel az U5-be
 };
 uint8_t minta1_adc3e[] = { 	0b00010001,		//32 led minta eleje
 							0b00010001,		//
 							0b00010001,		//
 							0b00010001,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00001011		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01011011		//8 vezerlojel az U5-be
 };
 uint8_t minta1_adc2e[] = { 	0b00010001,		//32 led minta eleje
 							0b00010001,		//
 							0b00010001,		//
 							0b00010001,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00001101		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01011101		//8 vezerlojel az U5-be
 };
 uint8_t minta1_adc1e[] = { 	0b00010001,		//32 led minta eleje
 							0b00010001,		//
 							0b00010001,		//
 							0b00010001,		//32 led minta vege
-							0b00001111,		//8 vezerlojel az U6-ba
-							0b00001110		//8 vezerlojel az U5-be
+							0b01011111,		//8 vezerlojel az U6-ba
+							0b01011110		//8 vezerlojel az U5-be
 };
 
 //barmi csak nem 11, ADD2, ADD1, ADD0, barmi csak nem 001, tehat: 00 _ _ _ 000
@@ -335,10 +342,13 @@ double vonal_kovetni_e = 0;
 int cel = 0;
 int szervoSzog = 90;
 int szervoSzog_emlek = 90;
-double kormanyzas_agresszivitas = 0.5;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[
+double kormanyzas_agresszivitas = 0.35;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[
 
 
 int motvez_d = 1023;
+int motvez_k = 0;
+int veretesi_cnt = 0;
+int fekezes_cnt = 0;
 
 int bluetooth_flag = 0;
 int bluetooth_j = 0;
@@ -414,7 +424,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 	if (htim == &htim2) {
 		timer_counter += 1;
-		if(99 < timer_counter) {
+		if(49 < timer_counter) {
 			Vonalas_tombok_torlese();
 			Vonalszenzor_operal(vonal_eredmeny_h, vonal_eredmeny_e);
 			Vonalas_tombok_feltoltese();
@@ -488,7 +498,12 @@ int main(void)
 	DC_MOTOR_Start(DC_MOTOR_PWM1, 0);
 	DC_MOTOR_Start(DC_MOTOR_PWM2, 0);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);		// motvez EN
+	motvez_k = 440;
 
+	Vonalszenzor_minta_kuldes(leszed);
+	Vonalszenzor_minta_kuldes(teszt_minta);		//csak hogy lassuk, hogy bekapcsolt
+	HAL_Delay(500);
+	Vonalszenzor_minta_kuldes(leszed);
 	//HAL_UART_Receive(&huart2, &bluetooth_rx, 1, 5000);
 	HAL_TIM_Base_Start_IT(&htim2);
 
@@ -548,7 +563,7 @@ int main(void)
 	while (1) {
 		//radios modul
 		/*for(int i=0; i < 6; i++) {
-			HAL_UART_Receive(&huart1, &temp_radio, 1, 2000);	//ez nagyon nagyon hosszu, all miatta a while(1)
+			HAL_UART_Receive(&huart1, &temp_radio, 1, 1000);	//ez nagyon nagyon hosszu, all miatta a while(1)
 			if(temp_radio == 0x30)
 				letsGo = 1;
 			if(temp_radio < 0x60 && 0x40 < temp_radio) {
@@ -590,13 +605,25 @@ int main(void)
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - k);
 					HAL_Delay(200);
 				}*/
-				int k = 420;		// 0 - 1023-ig 410 a minimum, az alatt karos a motornak
-				if (k < motvez_d / 2) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
-					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, k); 		// ha pwm1 nagyobb, hatramenet
-					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - k);
+
+				if (30 < veretesi_cnt) {// && fekezes_cnt < 80) {
+					while (415 < motvez_k) {
+						motvez_k -= 5;
+						HAL_Delay(50);
+					}
+				} else {
+					while (motvez_k < 450) {
+						motvez_k += 5;	// 0 - 1023-ig 440 a minimum, az alatt karos a motornak
+						HAL_Delay(5);
+					}
+				}
+				if (motvez_k) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
+					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_k); 		// ha pwm1 nagyobb, hatramenet
+					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - motvez_k);
 				}
 			}
 		} else {
+			veretesi_cnt = 0;
 			SERVO_MoveTo(SZERVO, 90);
 			DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_d / 2);	// ez a ketto a megallas
 			DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - (motvez_d / 2));
@@ -1586,6 +1613,17 @@ void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny) {
 void Vonalas_tombok_feltoltese(void) {
 	for(int poz=1; poz < 33-1; poz++) {
 	// 33 -1: 31-ig megyunk, mert a 32. sosem lehet egy 2 szeles vonal jobb szele
+		if(vonal_eredmeny_e[poz] > VONAL_THRESHOLD_E) {
+			if(vonal_eredmeny_e[poz+1] > VONAL_THRESHOLD_E) {
+				if(vonal_eredmeny_e[poz-1] < VONAL_THRESHOLD_E) {
+					int i = 0;
+					while(vonalak_e[i] != '-') {
+						i++;
+					}
+					vonalak_e[i] = poz;
+				}
+			}
+		}
 		if(vonal_eredmeny_h[poz] > VONAL_THRESHOLD_H) {
 			if(vonal_eredmeny_h[poz+1] > VONAL_THRESHOLD_H) {
 				if(vonal_eredmeny_h[poz-1] < VONAL_THRESHOLD_H) {
@@ -1598,27 +1636,17 @@ void Vonalas_tombok_feltoltese(void) {
 			}
 		}
 	}
-	for(int poz=1; poz < 33-1; poz++) {
+	/*for(int poz=1; poz < 33-1; poz++) {
 	// 33 -1: 31-ig megyunk, mert a 32. sosem lehet egy 2 szeles vonal jobb szele
-		if(vonal_eredmeny_e[poz] > VONAL_THRESHOLD_E) {
-			if(vonal_eredmeny_e[poz+1] > VONAL_THRESHOLD_E) {
-				if(vonal_eredmeny_e[poz-1] < VONAL_THRESHOLD_E) {
-					int i = 0;
-					while(vonalak_e[i] != '-') {
-						i++;
-					}
-					vonalak_e[i] = poz;
-				}
-			}
-		}
-	}
+
+	}*/
 }
 
 void Kovetendo_vonal_valaszto(double* elso, double* hatso) {
 	double elso_sum = 0.0;
 	double hatso_sum = 0.0;
-	double e_db = 0.0;
-	double h_db = 0.0;
+	double e_db = 0.0001;
+	double h_db = 0.0001;
 
 	for(int i=0; i < 5; i++) {				// 6: vonalak[] merete
 		if(vonalak_e[i] < 33) {				// kulonben '-' van benne, ami 45
@@ -1630,8 +1658,23 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso) {
 			h_db += 1.0;
 		}
 	}
-	*elso = elso_sum / e_db;
-	*hatso = hatso_sum / h_db;
+	if(1 < e_db) {
+		*elso = elso_sum / e_db;
+		*hatso = hatso_sum / h_db;
+	} else {
+		*elso = *elso;
+		*hatso = *hatso;
+	}
+	if(2 < e_db) {
+		fekezes_cnt += 1;
+	} else {
+		fekezes_cnt = 0;
+	}
+	if((-5 < *elso && *elso < 5)  &&  (-5 < *hatso && *hatso < 5)) {
+		veretesi_cnt += 1;
+	} else {
+		veretesi_cnt = 0;
+	}
 }
 
 void Szervo_szog_beallit(void) {
