@@ -339,6 +339,8 @@ uint8_t vonal_eredmeny_e[33] = { 0 };
 double vonal_kovetni_h = 0;
 double vonal_kovetni_e = 0;
 
+int menet_irany = 0;
+
 int cel = 0;
 int szervoSzog = 90;
 int szervoSzog_emlek = 90;
@@ -404,7 +406,7 @@ void Vonalas_tombok_torlese(void);
 void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny);	//aktualisan chip selectelt adc-bol parameterben adott chanelen olvas; ret: [0, 3]
 void Vonalas_tombok_feltoltese(void);
 void Szervo_szog_beallit(void);
-void Kovetendo_vonal_valaszto(double* elso, double* hatso);
+void Kovetendo_vonal_valaszto(double* elso, double* hatso, int irany);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -428,7 +430,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			Vonalas_tombok_torlese();
 			Vonalszenzor_operal(vonal_eredmeny_h, vonal_eredmeny_e);
 			Vonalas_tombok_feltoltese();
-			Kovetendo_vonal_valaszto(&vonal_kovetni_e, &vonal_kovetni_h);
+			Kovetendo_vonal_valaszto(&vonal_kovetni_e, &vonal_kovetni_h, 1);
 			Szervo_szog_beallit();
 			timer_counter = 0;
 		}
@@ -594,26 +596,23 @@ int main(void)
 
 		if (btnEnable == 1) {
 			if (motvezEnable == 1) {
-				/*for(int k = 500; k > 250; k-=5) {
-					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, k); // ha pwm1 nagyobb, hatramenet
-					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - k);
-					HAL_Delay(200);
-				}
-				for(int k = 250; k < 500; k+=5) {
-					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, k); // ha pwm1 nagyobb, hatramenet
-					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - k);
-					HAL_Delay(200);
-				}*/
-
-				if (30 < veretesi_cnt) {// && fekezes_cnt < 80) {
-					while (410 < motvez_k) {
-						motvez_k -= 5;
-						HAL_Delay(50);
+				if (10 < fekezes_cnt) {
+					while (motvez_k < 440) {
+						motvez_k += 5;
+						HAL_Delay(1);
 					}
+					veretesi_cnt = 0;
 				} else {
-					while (motvez_k < 450) {
-						motvez_k += 5;	// 0 - 1023-ig 440 a minimum, az alatt karos a motornak
-						HAL_Delay(5);
+					if (30 < veretesi_cnt) {
+						while (400 < motvez_k) {
+							motvez_k -= 5;
+							HAL_Delay(1);
+						}
+					} else {
+						while (motvez_k < 450) {
+							motvez_k += 5;	// 0 - 1023-ig 440 a minimum, az alatt karos a motornak
+							HAL_Delay(1);
+						}
 					}
 				}
 				if (motvez_d /2 > motvez_k) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
@@ -623,6 +622,7 @@ int main(void)
 			}
 		} else {
 			veretesi_cnt = 0;
+			fekezes_cnt = 0;
 			//SERVO_MoveTo(SZERVO, 90);
 			DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_d / 2);	// ez a ketto a megallas
 			DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - (motvez_d / 2));
@@ -1376,9 +1376,9 @@ static void Vonalszenzor_operal(uint8_t* teljes_kiolvasott_h, uint8_t* teljes_ki
 	//hatso vonalszenzor
 	Vonalszenzor_minta_kuldes(minta1_adc1h);
 	Vonalszenzor_meres_kiolvasas(adc_chanel0, eredmeny_16bit_temp);
-	teljes_kiolvasott_h[32] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_h[32] = (uint8_t) eredmeny_16bit_temp[0] - 5;
 	Vonalszenzor_meres_kiolvasas(adc_chanel4, eredmeny_16bit_temp);
-	teljes_kiolvasott_h[28] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_h[28] = (uint8_t) eredmeny_16bit_temp[0] - 2;
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta1_adc2h);
 	Vonalszenzor_meres_kiolvasas(adc_chanel0, eredmeny_16bit_temp);
@@ -1430,7 +1430,7 @@ static void Vonalszenzor_operal(uint8_t* teljes_kiolvasott_h, uint8_t* teljes_ki
 	Vonalszenzor_meres_kiolvasas(adc_chanel2, eredmeny_16bit_temp);
 	teljes_kiolvasott_h[30] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel6, eredmeny_16bit_temp);
-	teljes_kiolvasott_h[26] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_h[26] = (uint8_t) eredmeny_16bit_temp[0] + 1;
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta3_adc2h);
 	Vonalszenzor_meres_kiolvasas(adc_chanel2, eredmeny_16bit_temp);
@@ -1481,7 +1481,7 @@ static void Vonalszenzor_operal(uint8_t* teljes_kiolvasott_h, uint8_t* teljes_ki
 	//elso vonalszenzor
 	Vonalszenzor_minta_kuldes(minta1_adc1e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel0, eredmeny_16bit_temp);
-	teljes_kiolvasott_e[1] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_e[1] = (uint8_t) eredmeny_16bit_temp[0] - 4;
 	Vonalszenzor_meres_kiolvasas(adc_chanel4, eredmeny_16bit_temp);
 	teljes_kiolvasott_e[5] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_minta_kuldes(leszed);
@@ -1509,13 +1509,13 @@ static void Vonalszenzor_operal(uint8_t* teljes_kiolvasott_h, uint8_t* teljes_ki
 	Vonalszenzor_meres_kiolvasas(adc_chanel1, eredmeny_16bit_temp);
 	teljes_kiolvasott_e[2] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel5, eredmeny_16bit_temp);
-	teljes_kiolvasott_e[6] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_e[6] = (uint8_t) eredmeny_16bit_temp[0] +2;
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta2_adc2e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel1, eredmeny_16bit_temp);
 	teljes_kiolvasott_e[10] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel5, eredmeny_16bit_temp);
-	teljes_kiolvasott_e[14] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_e[14] = (uint8_t) eredmeny_16bit_temp[0] +1;
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta2_adc3e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel1, eredmeny_16bit_temp);
@@ -1541,7 +1541,7 @@ static void Vonalszenzor_operal(uint8_t* teljes_kiolvasott_h, uint8_t* teljes_ki
 	Vonalszenzor_meres_kiolvasas(adc_chanel2, eredmeny_16bit_temp);
 	teljes_kiolvasott_e[11] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel6, eredmeny_16bit_temp);
-	teljes_kiolvasott_e[15] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_e[15] = (uint8_t) eredmeny_16bit_temp[0] +2;
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta3_adc3e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel2, eredmeny_16bit_temp);
@@ -1561,7 +1561,7 @@ static void Vonalszenzor_operal(uint8_t* teljes_kiolvasott_h, uint8_t* teljes_ki
 	Vonalszenzor_meres_kiolvasas(adc_chanel3, eredmeny_16bit_temp);
 	teljes_kiolvasott_e[4] = (uint8_t) eredmeny_16bit_temp[0];
 	Vonalszenzor_meres_kiolvasas(adc_chanel7, eredmeny_16bit_temp);
-	teljes_kiolvasott_e[8] = (uint8_t) eredmeny_16bit_temp[0];
+	teljes_kiolvasott_e[8] = (uint8_t) eredmeny_16bit_temp[0] +2;
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(minta4_adc2e);
 	Vonalszenzor_meres_kiolvasas(adc_chanel3, eredmeny_16bit_temp);
@@ -1612,25 +1612,45 @@ void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny) {
 void Vonalas_tombok_feltoltese(void) {
 	for(int poz=1; poz < 33-1; poz++) {
 	// 33 -1: 31-ig megyunk, mert a 32. sosem lehet egy 2 szeles vonal jobb szele
-		if(vonal_eredmeny_e[poz] > VONAL_THRESHOLD_E) {
-			if(vonal_eredmeny_e[poz+1] > VONAL_THRESHOLD_E) {
-				if(vonal_eredmeny_e[poz-1] < VONAL_THRESHOLD_E) {
+		if(VONAL_THRESHOLD_E < vonal_eredmeny_e[poz]) {
+			if(VONAL_THRESHOLD_E < vonal_eredmeny_e[poz+1]) {
+				if(vonal_eredmeny_e[poz-1] <= VONAL_THRESHOLD_E) {
 					int i = 0;
 					while(vonalak_e[i] != '-') {
 						i++;
 					}
 					vonalak_e[i] = poz;
 				}
+			} else {
+				if(vonal_eredmeny_e[poz-1] <= VONAL_THRESHOLD_E) {
+					if(VONAL_THRESHOLD_E + 1 < vonal_eredmeny_e[poz-1] + vonal_eredmeny_e[poz+1]) {
+						int j = 0;
+						while(vonalak_e[j] != '-') {
+							j++;
+						}
+						vonalak_e[j] = poz;
+					}
+				}
 			}
 		}
-		if(vonal_eredmeny_h[poz] > VONAL_THRESHOLD_H) {
-			if(vonal_eredmeny_h[poz+1] > VONAL_THRESHOLD_H) {
-				if(vonal_eredmeny_h[poz-1] < VONAL_THRESHOLD_H) {
-					int i = 0;
-					while(vonalak_h[i] != '-') {
-						i++;
+		if(VONAL_THRESHOLD_H < vonal_eredmeny_h[poz]) {
+			if(VONAL_THRESHOLD_H < vonal_eredmeny_h[poz+1]) {
+				if(vonal_eredmeny_h[poz-1] <= VONAL_THRESHOLD_H) {
+					int k = 0;
+					while(vonalak_h[k] != '-') {
+						k++;
 					}
-					vonalak_h[i] = poz;
+					vonalak_h[k] = poz;
+				}
+			} else {
+				if(vonal_eredmeny_h[poz-1] <= VONAL_THRESHOLD_H) {
+					if(VONAL_THRESHOLD_H + 1 < vonal_eredmeny_h[poz-1] + vonal_eredmeny_h[poz+1]) {
+						int l = 0;
+						while(vonalak_h[l] != '-') {
+							l++;
+						}
+						vonalak_h[l] = poz;
+					}
 				}
 			}
 		}
@@ -1641,29 +1661,41 @@ void Vonalas_tombok_feltoltese(void) {
 	}*/
 }
 
-void Kovetendo_vonal_valaszto(double* elso, double* hatso) {
+void Kovetendo_vonal_valaszto(double* elso, double* hatso, int irany) {
 	double elso_sum = 0.0;
 	double hatso_sum = 0.0;
 	double e_db = 0.0001;
 	double h_db = 0.0001;
+	if(irany == 0) {
+		*elso = vonalak_e[0] - 16;
+		*hatso = *elso;
+	} else if (irany == 2) {
+		int j = 4;								// 4: vonalak_e merete
+		while(33 < vonalak_e[j]) {
+			j--;
+		}
+		*elso = vonalak_e[j] - 16;
+		*hatso = *elso;
+	} else {									// irany == 1: kozep es egyeb, rossz iranyokra is ezt csinaljuk
+		for(int i=0; i < 5; i++) {				// 6: vonalak[] merete
+			if(vonalak_e[i] < 33) {				// kulonben '-' van benne, ami 45
+				elso_sum += vonalak_e[i] - 16;		// ez elvileg jo 1 - 1 erzekelt vonalra
+				e_db += 1.0;
+			}
+			if(vonalak_h[i] < 33) {				// kulonben '-' van benne, ami 45
+				hatso_sum += vonalak_h[i] - 16;		// ez elvileg jo 1 - 1 erzekelt vonalra
+				h_db += 1.0;
+			}
+		}
+		if(1 < e_db) {
+			*elso = elso_sum / e_db;
+			*hatso = hatso_sum / h_db;
+		} else {
+			*elso = *elso;
+			*hatso = *hatso;
+		}
+	}
 
-	for(int i=0; i < 5; i++) {				// 6: vonalak[] merete
-		if(vonalak_e[i] < 33) {				// kulonben '-' van benne, ami 45
-			elso_sum += vonalak_e[i] - 16;		// ez elvileg jo 1 - 1 erzekelt vonalra
-			e_db += 1.0;
-		}
-		if(vonalak_h[i] < 33) {				// kulonben '-' van benne, ami 45
-			hatso_sum += vonalak_h[i] - 16;		// ez elvileg jo 1 - 1 erzekelt vonalra
-			h_db += 1.0;
-		}
-	}
-	if(1 < e_db) {
-		*elso = elso_sum / e_db;
-		*hatso = hatso_sum / h_db;
-	} else {
-		*elso = *elso;
-		*hatso = *hatso;
-	}
 	if(2 < e_db) {
 		fekezes_cnt += 1;
 	} else {
