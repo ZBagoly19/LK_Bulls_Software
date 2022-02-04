@@ -22,7 +22,7 @@ const SERVO_CfgType SERVO_CfgParam[SERVO_NUM] =
 		&TIM12->CCR2,
 		TIM_CHANNEL_2,
 		45000000,
-		1.45,	// jobbra korm. 0 "fok"		//1.3 mar tobb, mint amit a felfuggesztes bir
-		2.1		// balra korm. 180 "fok"	//
+		1.49,	// jobbra korm. 0 "fok"		//1.3 mar tobb, mint amit a felfuggesztes bir
+		2.2		// balra korm. 180 "fok"	//
     }
 };

@@ -493,6 +493,7 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 	SERVO_Init(SZERVO);
+	SERVO_MoveTo(SZERVO, 90);
 	DC_MOTOR_Init(DC_MOTOR_PWM1);
 	DC_MOTOR_Init(DC_MOTOR_PWM2);
 	DC_MOTOR_Start(DC_MOTOR_PWM1, 0);
@@ -590,8 +591,6 @@ int main(void)
 		HAL_UART_Transmit( &huart2, buff, strlen( (char*)buff ), 0xFFFF );*/
 		VL53L1_ClearInterruptAndStartMeasurement( Dev );
 
-		//Szervo
-		Szervo_szog_beallit();
 
 		if (btnEnable == 1) {
 			if (motvezEnable == 1) {
@@ -607,7 +606,7 @@ int main(void)
 				}*/
 
 				if (30 < veretesi_cnt) {// && fekezes_cnt < 80) {
-					while (415 < motvez_k) {
+					while (410 < motvez_k) {
 						motvez_k -= 5;
 						HAL_Delay(50);
 					}
@@ -617,14 +616,14 @@ int main(void)
 						HAL_Delay(5);
 					}
 				}
-				if (motvez_k) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
+				if (motvez_d /2 > motvez_k) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_k); 		// ha pwm1 nagyobb, hatramenet
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - motvez_k);
 				}
 			}
 		} else {
 			veretesi_cnt = 0;
-			SERVO_MoveTo(SZERVO, 90);
+			//SERVO_MoveTo(SZERVO, 90);
 			DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_d / 2);	// ez a ketto a megallas
 			DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - (motvez_d / 2));
 		}
@@ -1706,6 +1705,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == B1_Pin) {
 		btnEnable = !btnEnable;
 		//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);	//LED felvilagitasa
+		/*szervoSzog += 90;
+		if(szervoSzog > 200)
+			szervoSzog = 0;
+		SERVO_MoveTo(SZERVO, szervoSzog);*/
 	}
 }
 
