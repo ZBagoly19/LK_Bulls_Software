@@ -339,12 +339,15 @@ uint8_t vonal_eredmeny_e[33] = { 0 };
 double vonal_kovetni_h = 0;
 double vonal_kovetni_e = 0;
 
-int menet_irany = 0;
+uint8_t iranyok[] = {2, 1, 2};
+uint8_t aktualis_irany = 1;
+uint8_t keresztezodes_szam = 0;
+uint8_t keresztezodesben = 0;		// 0: egyenesben; 1: keresztezodesben; 2: keresztezodes utan, 1 pillanatra
 
-int cel = 0;
-int szervoSzog = 90;
+double cel = 0;
+float szervoSzog = 90;
 int szervoSzog_emlek = 90;
-double kormanyzas_agresszivitas = 0.35;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[
+double kormanyzas_agresszivitas = 0.35;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[    tolatashoz: kb 0.7
 
 
 int motvez_d = 1023;
@@ -405,8 +408,9 @@ void Vonalszenzor_minta_kuldes(uint8_t minta[]);
 void Vonalas_tombok_torlese(void);
 void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny);	//aktualisan chip selectelt adc-bol parameterben adott chanelen olvas; ret: [0, 3]
 void Vonalas_tombok_feltoltese(void);
-void Szervo_szog_beallit(void);
-void Kovetendo_vonal_valaszto(double* elso, double* hatso, int irany);
+void Szervo_szog_beallit(uint8_t tolatas);
+void Irany_valaszto(void);
+void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -430,8 +434,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			Vonalas_tombok_torlese();
 			Vonalszenzor_operal(vonal_eredmeny_h, vonal_eredmeny_e);
 			Vonalas_tombok_feltoltese();
-			Kovetendo_vonal_valaszto(&vonal_kovetni_e, &vonal_kovetni_h, 1);
-			Szervo_szog_beallit();
+			Irany_valaszto();
+			Kovetendo_vonal_valaszto(&vonal_kovetni_e, &vonal_kovetni_h, aktualis_irany);
+			Szervo_szog_beallit(0);
 			timer_counter = 0;
 		}
 
@@ -501,7 +506,7 @@ int main(void)
 	DC_MOTOR_Start(DC_MOTOR_PWM1, 0);
 	DC_MOTOR_Start(DC_MOTOR_PWM2, 0);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);		// motvez EN
-	motvez_k = 440;
+	motvez_k = 450;
 
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(teszt_minta);		//csak hogy lassuk, hogy bekapcsolt
@@ -596,7 +601,8 @@ int main(void)
 
 		if (btnEnable == 1) {
 			if (motvezEnable == 1) {
-				if (10 < fekezes_cnt) {
+				//motvez_k = 562;
+				/*if (10 < fekezes_cnt) {
 					while (motvez_k < 440) {
 						motvez_k += 5;
 						HAL_Delay(1);
@@ -614,11 +620,11 @@ int main(void)
 							HAL_Delay(1);
 						}
 					}
-				}
-				if (motvez_d /2 > motvez_k) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
+				}*/
+				//if (motvez_d /2 > motvez_k) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_k); 		// ha pwm1 nagyobb, hatramenet
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - motvez_k);
-				}
+				//}
 			}
 		} else {
 			veretesi_cnt = 0;
@@ -1661,15 +1667,35 @@ void Vonalas_tombok_feltoltese(void) {
 	}*/
 }
 
-void Kovetendo_vonal_valaszto(double* elso, double* hatso, int irany) {
+void Irany_valaszto(void) {
+	if(keresztezodesben == 0) {
+		if(vonalak_e[1] < 33) {		//kulonben '-' van benne, ami 45
+			keresztezodesben = 1;
+			aktualis_irany = iranyok[keresztezodes_szam];
+			if(keresztezodes_szam < sizeof(iranyok) / sizeof(iranyok[0]) - 1) {
+				keresztezodes_szam++;
+			} else {
+				DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_d / 2);	// ez a ketto a megallas
+				DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - (motvez_d / 2));
+			}
+		}
+	} else if(33 < vonalak_e[1]) {
+		keresztezodesben = 0;
+	}
+	if (aktualis_irany == 0){
+
+	}
+}
+
+void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany) {
 	double elso_sum = 0.0;
 	double hatso_sum = 0.0;
 	double e_db = 0.0001;
 	double h_db = 0.0001;
-	if(irany == 0) {
+	if(irany == 0) {							// jobbra at
 		*elso = vonalak_e[0] - 16;
 		*hatso = *elso;
-	} else if (irany == 2) {
+	} else if (irany == 2) {					// balra at
 		int j = 4;								// 4: vonalak_e merete
 		while(33 < vonalak_e[j]) {
 			j--;
@@ -1679,24 +1705,27 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso, int irany) {
 	} else {									// irany == 1: kozep es egyeb, rossz iranyokra is ezt csinaljuk
 		for(int i=0; i < 5; i++) {				// 6: vonalak[] merete
 			if(vonalak_e[i] < 33) {				// kulonben '-' van benne, ami 45
-				elso_sum += vonalak_e[i] - 16;		// ez elvileg jo 1 - 1 erzekelt vonalra
+				elso_sum += vonalak_e[i] - 16;
 				e_db += 1.0;
 			}
 			if(vonalak_h[i] < 33) {				// kulonben '-' van benne, ami 45
-				hatso_sum += vonalak_h[i] - 16;		// ez elvileg jo 1 - 1 erzekelt vonalra
+				hatso_sum += vonalak_h[i] - 16;
 				h_db += 1.0;
 			}
 		}
-		if(1 < e_db) {
+		if(0.9 < e_db) {
 			*elso = elso_sum / e_db;
-			*hatso = hatso_sum / h_db;
 		} else {
 			*elso = *elso;
+		}
+		if(0.9 < h_db) {
+			*hatso = hatso_sum / h_db;
+		} else {
 			*hatso = *hatso;
 		}
 	}
 
-	if(2 < e_db) {
+	if(1.9 < e_db) {
 		fekezes_cnt += 1;
 	} else {
 		fekezes_cnt = 0;
@@ -1708,10 +1737,22 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso, int irany) {
 	}
 }
 
-void Szervo_szog_beallit(void) {
+void Szervo_szog_beallit(uint8_t tolatas) {
 	if (btnEnable == 1 && szervoEnable == 1) {
-		cel = vonal_kovetni_e + (((vonal_kovetni_e) - (vonal_kovetni_h)) *kormanyzas_agresszivitas);
-		//fel auto tavolsagra vetit ki. ezt novelni kell hogy agresszivabban kanyarodjon
+		if (tolatas == 1) {		// tolatas	// 10 - (10- -7)*0.5 =
+			cel = vonal_kovetni_h + (((vonal_kovetni_h) - (vonal_kovetni_e)) *kormanyzas_agresszivitas);
+		} else {				// elore menet es rossz input
+			cel = vonal_kovetni_e + (((vonal_kovetni_e) - (vonal_kovetni_h)) *kormanyzas_agresszivitas);
+
+			/*cel = vonal_kovetni_e;
+			if(cel < -15) {
+				szervoSzog = 0;
+			} else if (16 < cel) {
+				szervoSzog = 180;
+			} else {
+				szervoSzog = 90 + cel *6;
+			}*/
+		}
 		if(cel < -15) {
 			szervoSzog = 0;
 		} else if(15 < cel) {
@@ -1719,15 +1760,6 @@ void Szervo_szog_beallit(void) {
 		} else {
 			szervoSzog = 90 + cel *6;
 		}
-
-		/*cel = vonal_kovetni_e;
-		if(cel < -15) {
-			szervoSzog = 0;
-		} else if (16 < cel) {
-			szervoSzog = 180;
-		} else {
-			szervoSzog = 90 + cel *6;
-		}*/
 
 		SERVO_MoveTo(SZERVO, szervoSzog);
 	}
