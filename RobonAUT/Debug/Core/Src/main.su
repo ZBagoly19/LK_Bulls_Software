@@ -31,9 +31,9 @@ main.c:1593:6:Vonalszenzor_minta_kuldes	16	static
 main.c:1601:6:Vonalas_tombok_torlese	16	static
 main.c:1612:6:Vonalszenzor_meres_kiolvasas	24	static
 main.c:1618:6:Vonalas_tombok_feltoltese	40	static
-main.c:1670:6:Irany_valaszto	8	static
-main.c:1690:6:Kovetendo_vonal_valaszto	64	static
-main.c:1740:6:Szervo_szog_beallit	16	static
-main.c:1768:6:HAL_GPIO_EXTI_Callback	16	static
-main.c:1785:6:Error_Handler	4	static,ignoring_inline_asm
-main.c:1803:6:assert_failed	16	static
+main.c:1670:6:Irany_valaszto	4	static
+main.c:1689:6:Kovetendo_vonal_valaszto	64	static
+main.c:1739:6:Szervo_szog_beallit	16	static
+main.c:1767:6:HAL_GPIO_EXTI_Callback	16	static
+main.c:1784:6:Error_Handler	4	static,ignoring_inline_asm
+main.c:1802:6:assert_failed	16	static

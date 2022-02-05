@@ -1675,8 +1675,7 @@ void Irany_valaszto(void) {
 			if(keresztezodes_szam < sizeof(iranyok) / sizeof(iranyok[0]) - 1) {
 				keresztezodes_szam++;
 			} else {
-				DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_d / 2);	// ez a ketto a megallas
-				DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - (motvez_d / 2));
+				motvez_k = motvez_d / 2;	// ez a ketto a megallas
 			}
 		}
 	} else if(33 < vonalak_e[1]) {
