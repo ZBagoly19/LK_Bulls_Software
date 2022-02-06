@@ -28,6 +28,10 @@
 #include "../ECUAL/SERVO/SERVO.c"
 #include "../ECUAL/DC_MOTOR/DC_MOTOR.h"
 #include "vl53l1_api.h"
+
+#include <limits.h>
+#include <stdio.h>
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,6 +44,7 @@
 #define DC_MOTOR_PWM1 0
 #define DC_MOTOR_PWM2 1
 #define	SZERVO 0
+#define CSUCS_SZAM 32 + 1		// +1 mert nekunk 1-tol kezdodnek a csucsok szamai, de a tombben lesz 0. elem is
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -339,10 +344,10 @@ uint8_t vonal_eredmeny_e[33] = { 0 };
 double vonal_kovetni_h = 0;
 double vonal_kovetni_e = 0;
 
-uint8_t iranyok[] = {2, 1, 2};
+uint8_t iranyok[] = { 2, 0, 2 };
 uint8_t aktualis_irany = 1;
 uint8_t keresztezodes_szam = 0;
-uint8_t keresztezodesben = 0;		// 0: egyenesben; 1: keresztezodesben; 2: keresztezodes utan, 1 pillanatra
+bool keresztezodesben = false;		// 0: egyenesben; 1: keresztezodesben
 
 double cel = 0;
 float szervoSzog = 90;
@@ -372,6 +377,9 @@ int bluetooth_i = 0;
 uint8_t kapuk[6] = { 0 };
 uint8_t temp_radio = '?';
 uint8_t letsGo = 0;
+
+int road[10];
+int graf[CSUCS_SZAM][CSUCS_SZAM];
 
 
 uint8_t timer_counter = 0;
@@ -408,9 +416,13 @@ void Vonalszenzor_minta_kuldes(uint8_t minta[]);
 void Vonalas_tombok_torlese(void);
 void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny);	//aktualisan chip selectelt adc-bol parameterben adott chanelen olvas; ret: [0, 3]
 void Vonalas_tombok_feltoltese(void);
-void Szervo_szog_beallit(uint8_t tolatas);
+void Szervo_szog_beallit(bool tolatas);
 void Irany_valaszto(void);
 void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany);
+int minDistance(int dist[], bool sptSet[]);
+void dijkstra(int graph[CSUCS_SZAM][CSUCS_SZAM], int src, int target1, int target2);
+void Graf_feltolt(void);
+void Kapuk_letilt(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -506,7 +518,7 @@ int main(void)
 	DC_MOTOR_Start(DC_MOTOR_PWM1, 0);
 	DC_MOTOR_Start(DC_MOTOR_PWM2, 0);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);		// motvez EN
-	motvez_k = 450;
+	motvez_k = 445;
 
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(teszt_minta);		//csak hogy lassuk, hogy bekapcsolt
@@ -1668,21 +1680,29 @@ void Vonalas_tombok_feltoltese(void) {
 }
 
 void Irany_valaszto(void) {
-	if(keresztezodesben == 0) {
-		if(vonalak_e[1] < 33) {		//kulonben '-' van benne, ami 45
-			keresztezodesben = 1;
-			aktualis_irany = iranyok[keresztezodes_szam];
-			if(keresztezodes_szam < sizeof(iranyok) / sizeof(iranyok[0]) - 1) {
-				keresztezodes_szam++;
-			} else {
-				motvez_k = motvez_d / 2;	// ez a ketto a megallas
+	if(keresztezodesben == false) {
+		if(vonalak_e[1] < 33) {
+			bool ok = true;
+			int i = 0;
+			while(vonalak_e[i] < 33) {		//kulonben '-' van benne, ami 45
+				if((-7 > vonal_kovetni_e - (vonalak_e[i] - 16))  ||  (vonal_kovetni_e - (vonalak_e[i] - 16) > 7)) {
+				// ha barhol van olyan vonal, ami tul messze van az aktualisan kovetettol
+					ok = false;
+				}
+				i++;
+			}
+			if(ok == true) {
+				keresztezodesben = true;
+				aktualis_irany = iranyok[keresztezodes_szam];
+				if(keresztezodes_szam < sizeof(iranyok) / sizeof(iranyok[0])) {
+					keresztezodes_szam++;
+				} else {
+					motvez_k = motvez_d / 2;	// ez a ketto a megallas
+				}
 			}
 		}
 	} else if(33 < vonalak_e[1]) {
-		keresztezodesben = 0;
-	}
-	if (aktualis_irany == 0){
-
+		keresztezodesben = false;
 	}
 }
 
@@ -1691,7 +1711,7 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany) {
 	double hatso_sum = 0.0;
 	double e_db = 0.0001;
 	double h_db = 0.0001;
-	if(irany == 0) {							// jobbra at
+	if(irany == 0) {		// jobbra at
 		*elso = vonalak_e[0] - 16;
 		*hatso = *elso;
 	} else if (irany == 2) {					// balra at
@@ -1703,7 +1723,8 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany) {
 		*hatso = *elso;
 	} else {									// irany == 1: kozep es egyeb, rossz iranyokra is ezt csinaljuk
 		for(int i=0; i < 5; i++) {				// 6: vonalak[] merete
-			if(vonalak_e[i] < 33) {				// kulonben '-' van benne, ami 45
+			if((vonalak_e[i] < 33)  &&			// kulonben '-' van benne, ami 45
+			   ((-9 < vonal_kovetni_e - (vonalak_e[i] - 16))  &&  (vonal_kovetni_e - (vonalak_e[i] - 16) < 9))) {
 				elso_sum += vonalak_e[i] - 16;
 				e_db += 1.0;
 			}
@@ -1736,21 +1757,12 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany) {
 	}
 }
 
-void Szervo_szog_beallit(uint8_t tolatas) {
+void Szervo_szog_beallit(bool tolatas) {
 	if (btnEnable == 1 && szervoEnable == 1) {
-		if (tolatas == 1) {		// tolatas	// 10 - (10- -7)*0.5 =
+		if (tolatas == true) {		// tolatas	// 10 - (10- -7)*0.5 =
 			cel = vonal_kovetni_h + (((vonal_kovetni_h) - (vonal_kovetni_e)) *kormanyzas_agresszivitas);
 		} else {				// elore menet es rossz input
 			cel = vonal_kovetni_e + (((vonal_kovetni_e) - (vonal_kovetni_h)) *kormanyzas_agresszivitas);
-
-			/*cel = vonal_kovetni_e;
-			if(cel < -15) {
-				szervoSzog = 0;
-			} else if (16 < cel) {
-				szervoSzog = 180;
-			} else {
-				szervoSzog = 90 + cel *6;
-			}*/
 		}
 		if(cel < -15) {
 			szervoSzog = 0;
@@ -1761,6 +1773,244 @@ void Szervo_szog_beallit(uint8_t tolatas) {
 		}
 
 		SERVO_MoveTo(SZERVO, szervoSzog);
+	}
+}
+
+// A utility function to find the vertex with minimum distance value, from
+// the set of vertices not yet included in shortest path tree
+int minDistance(int dist[], bool sptSet[])
+{
+    // Initialize min value
+    int min = INT_MAX, min_index;
+
+    for (int v = 0; v < CSUCS_SZAM; v++)
+        if (sptSet[v] == false && dist[v] <= min)
+            min = dist[v], min_index = v;
+
+    return min_index;
+}
+
+// Function that implements Dijkstra's single source shortest path algorithm
+// for a graph represented using adjacency matrix representation
+void dijkstra(int graph[CSUCS_SZAM][CSUCS_SZAM], int src, int target1, int target2) {
+	int dist[CSUCS_SZAM]; // The output array. dist[i] will hold the shortest
+	// distance from src to i
+  	int r[CSUCS_SZAM];
+  	for(int i = 0; i < CSUCS_SZAM; i++) {
+      	r[i] = -1;
+    }
+
+	bool sptSet[CSUCS_SZAM]; // sptSet[i] will be true if vertex i is included in shortest
+	// path tree or shortest distance from src to i is finalized
+
+	// Initialize all distances as INFINITE and stpSet[] as false
+	for (int i = 0; i < CSUCS_SZAM; i++)
+		dist[i] = INT_MAX, sptSet[i] = false;
+
+	// Distance of source vertex from itself is always 0
+	dist[src] = 0;
+
+	// Find shortest path for all vertices
+	for (int count = 0; count < CSUCS_SZAM - 1; count++) {
+		// Pick the minimum distance vertex from the set of vertices not
+		// yet processed. u is always equal to src in the first iteration.
+		int u = minDistance(dist, sptSet);
+
+		// Mark the picked vertex as processed
+		sptSet[u] = true;
+
+		// Update dist value of the adjacent vertices of the picked vertex.
+		for (int v = 0; v < CSUCS_SZAM; v++)
+
+			// Update dist[v] only if is not in sptSet, there is an edge from
+			// u to v, and total weight of path from src to v through u is
+			// smaller than current value of dist[v]
+			if (!sptSet[v] && graph[u][v] && dist[u] != INT_MAX
+				&& dist[u] + graph[u][v] < dist[v]) {
+				dist[v] = dist[u] + graph[u][v];
+    			r[v] = u; }
+	}
+
+  	int ultimate_trg = target1;
+  	if(dist[target2] < dist[target1])
+      	ultimate_trg = target2;
+
+  	for(int i = 0; i < 10; i++) {
+      	road[i] = -1;
+    }
+  	road[0] = ultimate_trg;
+  	int last_v = r[ultimate_trg];
+  	int k = 1;
+  	//cout <<last_v<< endl;
+  	while(last_v != src){
+  		road[k] = last_v;
+  		k++;
+        last_v = r[last_v];
+      	//cout <<last_v<< endl;
+     }
+  	road[k] = last_v;
+}
+
+void Graf_feltolt(void) {
+  	for(int u = 0; u < CSUCS_SZAM; u++) {
+      	for(int v= 0; v < CSUCS_SZAM; v++) {
+      		graf[u][v] = 5000000;
+        }
+    }
+  	graf[1][3] = 4891;
+    graf[1][5] = 6060;
+    graf[1][7] = 7143;
+    graf[2][3] = 5260;
+    graf[2][5] = 6429;
+    graf[2][7] = 7512;
+    graf[3][9] = 4202;
+    graf[3][11] = 5373;
+    graf[4][1] = 5260;
+    graf[4][2] = 4891;
+    graf[5][11] = 3657;
+    graf[6][1] = 6429;
+    graf[6][2] = 6060; 	// C csucs kesz
+    graf[7][11] = 2899;
+    graf[8][1] = 7512;
+    graf[8][2] = 7143;
+    graf[9][17] = 6770;
+    graf[9][19] = 8874;
+    graf[10][4] = 4202;
+    graf[11][14] = 1697;
+    graf[11][15] = 2370;
+    graf[11][21] = 8569;
+    graf[11][23] = 13602;
+    graf[11][25] = 14059;
+    graf[11][27] = 15560;
+    graf[12][4] = 5373;
+    graf[12][6] = 3657;
+    graf[12][8] = 2899; 	// F csucs kesz
+    graf[13][12] = 1697;
+    graf[14][17] = 4396;
+    graf[14][19] = 6500;
+    graf[15][21] = 6494;
+    graf[15][23] = 11527;
+    graf[15][25] = 11984;
+    graf[15][27] = 13485;
+    graf[16][12] = 2370;
+    graf[17][21] = 2969;
+    graf[17][23] = 8002;
+    graf[17][25] = 8459;
+    graf[17][27] = 9960;
+    graf[18][13] = 4396;
+    graf[18][10] = 6770; 	// I csucs kesz
+    graf[19][23] = 5615;
+    graf[19][25] = 6072;
+    graf[19][27] = 7573;
+    graf[20][10] = 8874;
+    graf[20][13] = 6500;
+    graf[21][23] = 4727;
+    graf[21][25] = 5184;
+    graf[21][27] = 6685;
+    graf[22][12] = 8569;
+    graf[22][16] = 6494;
+    graf[22][18] = 2969;
+    graf[23][29] = 10948;
+    graf[23][32] = 13441;
+    graf[24][12] = 13602;
+    graf[24][16] = 11527;
+    graf[24][18] = 8002;
+    graf[24][20] = 5615;
+    graf[24][22] = 4727; 	// L csucs kesz
+    graf[25][29] = 10485;
+    graf[25][32] = 12978;
+    graf[26][12] = 14059;
+    graf[26][16] = 11984;
+    graf[26][18] = 8459;
+    graf[26][20] = 6072;
+    graf[26][22] = 5184;
+    graf[27][31] = 3047;
+    graf[28][12] = 15560;
+    graf[28][16] = 13485;
+    graf[28][18] = 9960;
+    graf[28][20] = 7573;
+    graf[28][22] = 6685;
+    graf[29][32] = 9659;
+    graf[30][29] = 6981;
+    graf[30][32] = 9474;
+    graf[31][24] = 13441;
+    graf[31][26] = 12978;
+    graf[32][28] = 3047;
+}
+
+void Kapuk_letilt(void) {
+	for(int i = 0; i < 6; i++) {
+		if			(kapuk[i] == 'a') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[1][i] = 5000000;
+				graf[2][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'b') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[3][i] = 5000000;
+				graf[4][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'c') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[5][i] = 5000000;
+				graf[6][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'd') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[7][i] = 5000000;
+				graf[8][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'e') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[9][i] = 5000000;
+				graf[10][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'f') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[11][i] = 5000000;
+				graf[12][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'g') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[13][i] = 5000000;
+				graf[14][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'h') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[15][i] = 5000000;
+				graf[16][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'i') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[17][i] = 5000000;
+				graf[18][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'j') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[19][i] = 5000000;
+				graf[20][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'k') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[21][i] = 5000000;
+				graf[22][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'l') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[23][i] = 5000000;
+				graf[24][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'm') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[25][i] = 5000000;
+				graf[26][i] = 5000000;
+			}
+		} else if	(kapuk[i] == 'n') {
+			for(int j = 1; j < CSUCS_SZAM; j++) {
+				graf[27][i] = 5000000;
+				graf[28][i] = 5000000;
+			}
+		}
 	}
 }
 
