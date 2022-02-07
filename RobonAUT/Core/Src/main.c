@@ -344,12 +344,13 @@ uint8_t vonal_eredmeny_e[33] = { 0 };
 double vonal_kovetni_h = 0;
 double vonal_kovetni_e = 0;
 
-uint8_t iranyok[100];
+uint8_t iranyok[20];
 uint8_t iranyok1[] = { 2, 0,2 };
 uint8_t aktualis_irany = 1;
 uint8_t keresztezodes_szam = 0;
 bool keresztezodesben = false;		// 0: egyenesben; 1: keresztezodesben
 uint8_t kereszt_cnt = 0;
+bool tolatas = false;
 
 double cel = 0;
 float szervoSzog = 90;
@@ -380,7 +381,7 @@ uint8_t kapuk[6] = { 0 };
 uint8_t temp_radio = '?';
 uint8_t letsGo = 0;
 
-int road[10];
+int road[10] = {18, 28, 32, 30, -1, -1, -1, -1, -1, -1};
 int graf_csucs[CSUCS_SZAM][CSUCS_SZAM];
 int graf_irany[CSUCS_SZAM][CSUCS_SZAM][8];
 uint8_t iranyok_elem = 0;
@@ -420,13 +421,15 @@ void Vonalszenzor_minta_kuldes(uint8_t minta[]);
 void Vonalas_tombok_torlese(void);
 void Vonalszenzor_meres_kiolvasas(uint8_t chanel, uint8_t* eredmeny);	//aktualisan chip selectelt adc-bol parameterben adott chanelen olvas; ret: [0, 3]
 void Vonalas_tombok_feltoltese(void);
-void Szervo_szog_beallit(bool tolatas);
+void Szervo_szog_beallit(void);
 void Irany_valaszto(void);
 void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany);
 int minDistance(int dist[], bool sptSet[]);
 void dijkstra(int graph[CSUCS_SZAM][CSUCS_SZAM], int src, int target1, int target2);
 void Graf_csucs_feltolt(void);
+void Graf_irany_feltolt(void);
 void Kapuk_letilt(void);
+void Iranyok_torlo(void);
 void Iranyok_osszeallito(void);
 /* USER CODE END PFP */
 
@@ -453,7 +456,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			Vonalas_tombok_feltoltese();
 			Irany_valaszto();
 			Kovetendo_vonal_valaszto(&vonal_kovetni_e, &vonal_kovetni_h, aktualis_irany);
-			Szervo_szog_beallit(0);
+			Szervo_szog_beallit();
 			timer_counter = 0;
 		}
 
@@ -537,6 +540,10 @@ int main(void)
 	//Vonalszenzor inicializacio
 	Vonalszenzor_Init();
 
+	Graf_irany_feltolt();
+	Iranyok_torlo();
+	Iranyok_osszeallito();
+
 
 	// initialize vl53l1x communication parameters
 	Dev->I2cHandle = &hi2c1;
@@ -615,7 +622,6 @@ int main(void)
 		HAL_UART_Transmit( &huart2, buff, strlen( (char*)buff ), 0xFFFF );*/
 		VL53L1_ClearInterruptAndStartMeasurement( Dev );
 
-
 		if (btnEnable == 1) {
 			if (motvezEnable == 1) {
 				//motvez_k = 562;
@@ -637,6 +643,18 @@ int main(void)
 							HAL_Delay(1);
 						}
 					}
+				}*/
+				// ha sok helyen latunk sotetet, akkor megallunk
+				/*uint8_t sotetek = 0;
+				for(int i = 1; i < 33; i++) {
+					if(VONAL_THRESHOLD_E < vonal_eredmeny_e[i]) {
+						sotetek++;
+					}
+				}
+				if(8 < sotetek) {
+					motvez_k = motvez_d / 2;
+					tolatas = true;
+					kormanyzas_agresszivitas = 0.7;
 				}*/
 				//if (motvez_d /2 > motvez_k) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_k); 		// ha pwm1 nagyobb, hatramenet
@@ -1702,11 +1720,17 @@ void Irany_valaszto(void) {
 				kereszt_cnt++;
 				if(16 < kereszt_cnt) {
 					keresztezodesben = true;
-					aktualis_irany = iranyok1[keresztezodes_szam];
-					if(keresztezodes_szam < sizeof(iranyok1) / sizeof(iranyok1[0])) {
+					tolatas = false;
+					aktualis_irany = iranyok[keresztezodes_szam];
+					if(aktualis_irany == 9) {
+						motvez_k = motvez_d / 2;	// ez a megallas
+					}
+					/*if(keresztezodes_szam < sizeof(iranyok1) / sizeof(iranyok1[0])) {
 						keresztezodes_szam++;
-					} else {
-						motvez_k = motvez_d / 2;	// ez a ketto a megallas
+					}*/ else {
+						//motvez_k = motvez_d / 2;	// ez a megallas
+						keresztezodes_szam++;
+						motvez_k = 450;
 					}
 				}
 			}
@@ -1783,12 +1807,14 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany) {
 	}
 }
 
-void Szervo_szog_beallit(bool tolatas) {
+void Szervo_szog_beallit(void) {
 	if (btnEnable == 1 && szervoEnable == 1) {
 		if (tolatas == true) {		// tolatas	// 10 - (10- -7)*0.5 =
 			cel = vonal_kovetni_h + (((vonal_kovetni_h) - (vonal_kovetni_e)) *kormanyzas_agresszivitas);
+			motvez_k = 572;
 		} else {				// elore menet es rossz input
 			cel = vonal_kovetni_e + (((vonal_kovetni_e) - (vonal_kovetni_h)) *kormanyzas_agresszivitas);
+			//motvez_k = 455;
 		}
 		if(cel < -15) {
 			szervoSzog = 0;
@@ -1985,14 +2011,14 @@ void Graf_irany_feltolt(void) {
 	graf_irany[3][9][0] = 2;
 	graf_irany[3][11][0] = 0;
 	graf_irany[3][11][1] = 1;
-	graf_irany[3][11][2] = 2;
+	graf_irany[3][11][2] = 1;
 	graf_irany[4][1][0] = 0;
 	graf_irany[4][2][0] = 1;
 	graf_irany[5][11][0] = 0;
 	graf_irany[5][11][1] = 2;
 	graf_irany[6][1][0] = 0;
 	graf_irany[6][1][1] = 0;
-	graf_irany[6][2][0] = 0; 	// C csucs kesz
+	graf_irany[6][2][0] = 1; 	// C csucs kesz
 	graf_irany[6][2][1] = 2; 	// C csucs kesz
 	graf_irany[7][11][0] = 1;
 	graf_irany[8][1][0] = 1;
@@ -2124,7 +2150,7 @@ void Graf_irany_feltolt(void) {
 	graf_irany[28][16][0] = 1;
 	graf_irany[28][16][0] = 2;
 	graf_irany[28][18][0] = 2;
-	graf_irany[28][18][0] = 0;
+	graf_irany[28][18][1] = 0;
 	graf_irany[28][20][0] = 0;
 	graf_irany[28][22][0] = 1;
 	graf_irany[29][32][0] = 2;
@@ -2223,12 +2249,18 @@ void Kapuk_letilt(void) {
 	}
 }
 
-void Iranyok_osszeallito(void) {
-	for(int i = 0; i < 50; i++) {
+void Iranyok_torlo(void) {
+	for(int i = 0; i < 100; i++) {
 		iranyok[i] = 9;				// 9: nem igazi iranyt jelol
 	}
-	for(int i = 9; 1 < i; i--) {
+}
+
+void Iranyok_osszeallito(void) {
+	for(int i = 9; 0 < i; i--) {
 		if(road[i] != -1) {
+			if(road[i] == 29) {
+				tolatas = true;
+			}
 			for(int j = 0; j < 8; j++) {
 				// road[i]-bol road[i-1]-be "0 2 0" beirni az iranyokba
 				if(graf_irany[ road[i] ] [ road[i-1] ] [ j ]  != -1) {
