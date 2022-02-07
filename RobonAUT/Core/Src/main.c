@@ -344,10 +344,12 @@ uint8_t vonal_eredmeny_e[33] = { 0 };
 double vonal_kovetni_h = 0;
 double vonal_kovetni_e = 0;
 
-uint8_t iranyok[] = { 2, 0, 2 };
+uint8_t iranyok[100];
+uint8_t iranyok1[] = { 2, 0,2 };
 uint8_t aktualis_irany = 1;
 uint8_t keresztezodes_szam = 0;
 bool keresztezodesben = false;		// 0: egyenesben; 1: keresztezodesben
+uint8_t kereszt_cnt = 0;
 
 double cel = 0;
 float szervoSzog = 90;
@@ -379,7 +381,9 @@ uint8_t temp_radio = '?';
 uint8_t letsGo = 0;
 
 int road[10];
-int graf[CSUCS_SZAM][CSUCS_SZAM];
+int graf_csucs[CSUCS_SZAM][CSUCS_SZAM];
+int graf_irany[CSUCS_SZAM][CSUCS_SZAM][8];
+uint8_t iranyok_elem = 0;
 
 
 uint8_t timer_counter = 0;
@@ -421,8 +425,9 @@ void Irany_valaszto(void);
 void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany);
 int minDistance(int dist[], bool sptSet[]);
 void dijkstra(int graph[CSUCS_SZAM][CSUCS_SZAM], int src, int target1, int target2);
-void Graf_feltolt(void);
+void Graf_csucs_feltolt(void);
 void Kapuk_letilt(void);
+void Iranyok_osszeallito(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -442,7 +447,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 	if (htim == &htim2) {
 		timer_counter += 1;
-		if(49 < timer_counter) {
+		if(9 < timer_counter) {
 			Vonalas_tombok_torlese();
 			Vonalszenzor_operal(vonal_eredmeny_h, vonal_eredmeny_e);
 			Vonalas_tombok_feltoltese();
@@ -518,11 +523,11 @@ int main(void)
 	DC_MOTOR_Start(DC_MOTOR_PWM1, 0);
 	DC_MOTOR_Start(DC_MOTOR_PWM2, 0);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);		// motvez EN
-	motvez_k = 445;
+	motvez_k = 455;
 
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(teszt_minta);		//csak hogy lassuk, hogy bekapcsolt
-	HAL_Delay(500);
+	HAL_Delay(100);
 	Vonalszenzor_minta_kuldes(leszed);
 	//HAL_UART_Receive(&huart2, &bluetooth_rx, 1, 5000);
 	HAL_TIM_Base_Start_IT(&htim2);
@@ -1685,24 +1690,31 @@ void Irany_valaszto(void) {
 			bool ok = true;
 			int i = 0;
 			while(vonalak_e[i] < 33) {		//kulonben '-' van benne, ami 45
-				if((-7 > vonal_kovetni_e - (vonalak_e[i] - 16))  ||  (vonal_kovetni_e - (vonalak_e[i] - 16) > 7)) {
+				if((-9 > vonal_kovetni_e - (vonalak_e[i] - 16))  ||  (vonal_kovetni_e - (vonalak_e[i] - 16) > 9)) {
+					//if((-9.5 > vonal_kovetni_h - (vonalak_h[i] - 16))  ||  (vonal_kovetni_h - (vonalak_h[i] - 16) > 9.5)) {
 				// ha barhol van olyan vonal, ami tul messze van az aktualisan kovetettol
-					ok = false;
+						ok = false;
+					//}
 				}
 				i++;
 			}
 			if(ok == true) {
-				keresztezodesben = true;
-				aktualis_irany = iranyok[keresztezodes_szam];
-				if(keresztezodes_szam < sizeof(iranyok) / sizeof(iranyok[0])) {
-					keresztezodes_szam++;
-				} else {
-					motvez_k = motvez_d / 2;	// ez a ketto a megallas
+				kereszt_cnt++;
+				if(16 < kereszt_cnt) {
+					keresztezodesben = true;
+					aktualis_irany = iranyok1[keresztezodes_szam];
+					if(keresztezodes_szam < sizeof(iranyok1) / sizeof(iranyok1[0])) {
+						keresztezodes_szam++;
+					} else {
+						motvez_k = motvez_d / 2;	// ez a ketto a megallas
+					}
 				}
 			}
 		}
 	} else if(33 < vonalak_e[1]) {
 		keresztezodesben = false;
+		aktualis_irany = 1;
+		kereszt_cnt = 0;
 	}
 }
 
@@ -1711,20 +1723,34 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany) {
 	double hatso_sum = 0.0;
 	double e_db = 0.0001;
 	double h_db = 0.0001;
-	if(irany == 0) {		// jobbra at
+	if(irany == 0) {							// jobbra at
 		*elso = vonalak_e[0] - 16;
-		*hatso = *elso;
+		for(int i=0; i < 5; i++) {				// 6: vonalak[] merete
+			if((vonalak_h[i] < 33)  &&			// kulonben '-' van benne, ami 45
+			   ((-6 < vonal_kovetni_h - (vonalak_h[i] - 16))  &&  (vonal_kovetni_h - (vonalak_h[i] - 16) < 6))) {
+				hatso_sum += vonalak_h[i] - 16;
+				h_db += 1.0;
+			}
+		}
+		*hatso = (-1)* hatso_sum / h_db;
 	} else if (irany == 2) {					// balra at
 		int j = 4;								// 4: vonalak_e merete
 		while(33 < vonalak_e[j]) {
 			j--;
 		}
 		*elso = vonalak_e[j] - 16;
-		*hatso = *elso;
+		for(int i=0; i < 5; i++) {				// 6: vonalak[] merete
+			if((vonalak_h[i] < 33)  &&			// kulonben '-' van benne, ami 45
+			   ((-6 < vonal_kovetni_h - (vonalak_h[i] - 16))  &&  (vonal_kovetni_h - (vonalak_h[i] - 16) < 6))) {
+				hatso_sum += vonalak_h[i] - 16;
+				h_db += 1.0;
+			}
+		}
+		*hatso = (-1)* hatso_sum / h_db;
 	} else {									// irany == 1: kozep es egyeb, rossz iranyokra is ezt csinaljuk
 		for(int i=0; i < 5; i++) {				// 6: vonalak[] merete
 			if((vonalak_e[i] < 33)  &&			// kulonben '-' van benne, ami 45
-			   ((-9 < vonal_kovetni_e - (vonalak_e[i] - 16))  &&  (vonal_kovetni_e - (vonalak_e[i] - 16) < 9))) {
+			   ((-7 < vonal_kovetni_e - (vonalak_e[i] - 16))  &&  (vonal_kovetni_e - (vonalak_e[i] - 16) < 7))) {
 				elso_sum += vonalak_e[i] - 16;
 				e_db += 1.0;
 			}
@@ -1851,164 +1877,364 @@ void dijkstra(int graph[CSUCS_SZAM][CSUCS_SZAM], int src, int target1, int targe
   	road[k] = last_v;
 }
 
-void Graf_feltolt(void) {
+void Graf_csucs_feltolt(void) {
   	for(int u = 0; u < CSUCS_SZAM; u++) {
       	for(int v= 0; v < CSUCS_SZAM; v++) {
-      		graf[u][v] = 5000000;
+      		graf_csucs[u][v] = 5000000;
         }
     }
-  	graf[1][3] = 4891;
-    graf[1][5] = 6060;
-    graf[1][7] = 7143;
-    graf[2][3] = 5260;
-    graf[2][5] = 6429;
-    graf[2][7] = 7512;
-    graf[3][9] = 4202;
-    graf[3][11] = 5373;
-    graf[4][1] = 5260;
-    graf[4][2] = 4891;
-    graf[5][11] = 3657;
-    graf[6][1] = 6429;
-    graf[6][2] = 6060; 	// C csucs kesz
-    graf[7][11] = 2899;
-    graf[8][1] = 7512;
-    graf[8][2] = 7143;
-    graf[9][17] = 6770;
-    graf[9][19] = 8874;
-    graf[10][4] = 4202;
-    graf[11][14] = 1697;
-    graf[11][15] = 2370;
-    graf[11][21] = 8569;
-    graf[11][23] = 13602;
-    graf[11][25] = 14059;
-    graf[11][27] = 15560;
-    graf[12][4] = 5373;
-    graf[12][6] = 3657;
-    graf[12][8] = 2899; 	// F csucs kesz
-    graf[13][12] = 1697;
-    graf[14][17] = 4396;
-    graf[14][19] = 6500;
-    graf[15][21] = 6494;
-    graf[15][23] = 11527;
-    graf[15][25] = 11984;
-    graf[15][27] = 13485;
-    graf[16][12] = 2370;
-    graf[17][21] = 2969;
-    graf[17][23] = 8002;
-    graf[17][25] = 8459;
-    graf[17][27] = 9960;
-    graf[18][13] = 4396;
-    graf[18][10] = 6770; 	// I csucs kesz
-    graf[19][23] = 5615;
-    graf[19][25] = 6072;
-    graf[19][27] = 7573;
-    graf[20][10] = 8874;
-    graf[20][13] = 6500;
-    graf[21][23] = 4727;
-    graf[21][25] = 5184;
-    graf[21][27] = 6685;
-    graf[22][12] = 8569;
-    graf[22][16] = 6494;
-    graf[22][18] = 2969;
-    graf[23][29] = 10948;
-    graf[23][32] = 13441;
-    graf[24][12] = 13602;
-    graf[24][16] = 11527;
-    graf[24][18] = 8002;
-    graf[24][20] = 5615;
-    graf[24][22] = 4727; 	// L csucs kesz
-    graf[25][29] = 10485;
-    graf[25][32] = 12978;
-    graf[26][12] = 14059;
-    graf[26][16] = 11984;
-    graf[26][18] = 8459;
-    graf[26][20] = 6072;
-    graf[26][22] = 5184;
-    graf[27][31] = 3047;
-    graf[28][12] = 15560;
-    graf[28][16] = 13485;
-    graf[28][18] = 9960;
-    graf[28][20] = 7573;
-    graf[28][22] = 6685;
-    graf[29][32] = 9659;
-    graf[30][29] = 6981;
-    graf[30][32] = 9474;
-    graf[31][24] = 13441;
-    graf[31][26] = 12978;
-    graf[32][28] = 3047;
+  	graf_csucs[1][3] = 4891;
+    graf_csucs[1][5] = 6060;
+    graf_csucs[1][7] = 7143;
+    graf_csucs[2][3] = 5260;
+    graf_csucs[2][5] = 6429;
+    graf_csucs[2][7] = 7512;
+    graf_csucs[3][9] = 4202;
+    graf_csucs[3][11] = 5373;
+    graf_csucs[4][1] = 5260;
+    graf_csucs[4][2] = 4891;
+    graf_csucs[5][11] = 3657;
+    graf_csucs[6][1] = 6429;
+    graf_csucs[6][2] = 6060; 	// C csucs kesz
+    graf_csucs[7][11] = 2899;
+    graf_csucs[8][1] = 7512;
+    graf_csucs[8][2] = 7143;
+    graf_csucs[9][17] = 6770;
+    graf_csucs[9][19] = 8874;
+    graf_csucs[10][4] = 4202;
+    graf_csucs[11][14] = 1697;
+    graf_csucs[11][15] = 2370;
+    graf_csucs[11][21] = 8569;
+    graf_csucs[11][23] = 13602;
+    graf_csucs[11][25] = 14059;
+    graf_csucs[11][27] = 15560;
+    graf_csucs[12][4] = 5373;
+    graf_csucs[12][6] = 3657;
+    graf_csucs[12][8] = 2899; 	// F csucs kesz
+    graf_csucs[13][12] = 1697;
+    graf_csucs[14][17] = 4396;
+    graf_csucs[14][19] = 6500;
+    graf_csucs[15][21] = 6494;
+    graf_csucs[15][23] = 11527;
+    graf_csucs[15][25] = 11984;
+    graf_csucs[15][27] = 13485;
+    graf_csucs[16][12] = 2370;
+    graf_csucs[17][21] = 2969;
+    graf_csucs[17][23] = 8002;
+    graf_csucs[17][25] = 8459;
+    graf_csucs[17][27] = 9960;
+    graf_csucs[18][13] = 4396;
+    graf_csucs[18][10] = 6770; 	// I csucs kesz
+    graf_csucs[19][23] = 5615;
+    graf_csucs[19][25] = 6072;
+    graf_csucs[19][27] = 7573;
+    graf_csucs[20][10] = 8874;
+    graf_csucs[20][13] = 6500;
+    graf_csucs[21][23] = 4727;
+    graf_csucs[21][25] = 5184;
+    graf_csucs[21][27] = 6685;
+    graf_csucs[22][12] = 8569;
+    graf_csucs[22][16] = 6494;
+    graf_csucs[22][18] = 2969;
+    graf_csucs[23][29] = 10948;
+    graf_csucs[23][32] = 13441;
+    graf_csucs[24][12] = 13602;
+    graf_csucs[24][16] = 11527;
+    graf_csucs[24][18] = 8002;
+    graf_csucs[24][20] = 5615;
+    graf_csucs[24][22] = 4727; 	// L csucs kesz
+    graf_csucs[25][29] = 10485;
+    graf_csucs[25][32] = 12978;
+    graf_csucs[26][12] = 14059;
+    graf_csucs[26][16] = 11984;
+    graf_csucs[26][18] = 8459;
+    graf_csucs[26][20] = 6072;
+    graf_csucs[26][22] = 5184;
+    graf_csucs[27][31] = 3047;
+    graf_csucs[28][12] = 15560;
+    graf_csucs[28][16] = 13485;
+    graf_csucs[28][18] = 9960;
+    graf_csucs[28][20] = 7573;
+    graf_csucs[28][22] = 6685;
+    graf_csucs[29][32] = 9659;
+    graf_csucs[30][29] = 6981;
+    graf_csucs[30][32] = 9474;
+    graf_csucs[31][24] = 13441;
+    graf_csucs[31][26] = 12978;
+    graf_csucs[32][28] = 3047;
+}
+
+void Graf_irany_feltolt(void) {
+	for(int u = 0; u < CSUCS_SZAM; u++) {
+		for(int v = 0; v < CSUCS_SZAM; v++) {
+			for(int d = 0; d < 8; d++) {
+				graf_irany[u][v][d] = -1;
+			}
+		}
+	}
+	graf_irany[1][3][0] = 2;
+	graf_irany[1][5][0] = 0;
+	graf_irany[1][5][1] = 2;
+	graf_irany[1][7][0] = 0;
+	graf_irany[1][7][1] = 0;
+	graf_irany[2][3][0] = 2;
+	graf_irany[2][5][0] = 0;
+	graf_irany[2][5][1] = 2;
+	graf_irany[2][7][0] = 0;
+	graf_irany[2][7][1] = 0;
+	graf_irany[3][9][0] = 2;
+	graf_irany[3][11][0] = 0;
+	graf_irany[3][11][1] = 1;
+	graf_irany[3][11][2] = 2;
+	graf_irany[4][1][0] = 0;
+	graf_irany[4][2][0] = 1;
+	graf_irany[5][11][0] = 0;
+	graf_irany[5][11][1] = 2;
+	graf_irany[6][1][0] = 0;
+	graf_irany[6][1][1] = 0;
+	graf_irany[6][2][0] = 0; 	// C csucs kesz
+	graf_irany[6][2][1] = 2; 	// C csucs kesz
+	graf_irany[7][11][0] = 1;
+	graf_irany[8][1][0] = 1;
+	graf_irany[8][1][1] = 0;
+	graf_irany[8][2][0] = 1;
+	graf_irany[8][2][1] = 2;
+	graf_irany[9][17][0] = 2;
+	graf_irany[9][17][1] = 0;
+	graf_irany[9][19][0] = 2;
+	graf_irany[9][19][1] = 2;
+	graf_irany[10][4][0] = 0;
+	graf_irany[11][14][0] = 2;
+	graf_irany[11][15][0] = 0;
+	graf_irany[11][21][0] = 1;
+	graf_irany[11][21][1] = 2;
+	graf_irany[11][21][2] = 1;
+	graf_irany[11][23][0] = 1;
+	graf_irany[11][23][1] = 2;
+	graf_irany[11][23][2] = 0;
+	graf_irany[11][23][3] = 0;
+	graf_irany[11][25][0] = 1;
+	graf_irany[11][25][1] = 2;
+	graf_irany[11][25][2] = 0;
+	graf_irany[11][25][3] = 1;
+	graf_irany[11][27][0] = 1;
+	graf_irany[11][27][1] = 2;
+	graf_irany[11][27][2] = 0;
+	graf_irany[11][27][3] = 2;
+	graf_irany[12][4][0] = 0;
+	graf_irany[12][4][1] = 0;
+	graf_irany[12][4][2] = 1;
+	graf_irany[12][6][0] = 0;
+	graf_irany[12][6][1] = 2;
+	graf_irany[12][8][0] = 2; 	// F csucs kesz
+	graf_irany[13][12][0] = 1;
+	graf_irany[14][17][0] = 1;
+	graf_irany[14][17][1] = 0;
+	graf_irany[14][19][0] = 1;
+	graf_irany[14][19][1] = 2;
+	graf_irany[15][21][0] = 1;
+	graf_irany[15][21][1] = 1;
+	graf_irany[15][23][0] = 1;
+	graf_irany[15][23][1] = 0;
+	graf_irany[15][23][2] = 0;
+	graf_irany[15][25][0] = 1;
+	graf_irany[15][25][1] = 0;
+	graf_irany[15][25][2] = 1;
+	graf_irany[15][27][0] = 1;
+	graf_irany[15][27][1] = 0;
+	graf_irany[15][27][2] = 2;
+	graf_irany[16][12][0] = 1;
+	graf_irany[17][21][0] = 2;		// vagy kozep, fura keresztezodes
+	graf_irany[17][23][0] = 0;
+	graf_irany[17][23][1] = 0;
+	graf_irany[17][25][0] = 0;
+	graf_irany[17][25][1] = 1;
+	graf_irany[17][27][0] = 0;
+	graf_irany[17][27][1] = 2;
+	graf_irany[18][13][0] = 1;
+	graf_irany[18][13][1] = 2;
+	graf_irany[18][10][0] = 1; 	// I csucs kesz
+	graf_irany[18][10][1] = 0; 	// I csucs kesz
+	graf_irany[19][23][0] = 0;
+	graf_irany[19][25][0] = 1;
+	graf_irany[19][27][0] = 2;
+	graf_irany[20][10][0] = 0;
+	graf_irany[20][10][1] = 0;
+	graf_irany[20][13][0] = 0;
+	graf_irany[20][13][1] = 2;
+	graf_irany[21][23][0] = 0;
+	graf_irany[21][25][0] = 1;
+	graf_irany[21][27][0] = 2;
+	graf_irany[22][12][0] = 1;
+	graf_irany[22][12][1] = 0;
+	graf_irany[22][12][2] = 1;
+	graf_irany[22][16][0] = 1;
+	graf_irany[22][16][1] = 2;
+	graf_irany[22][18][0] = 0;
+	graf_irany[23][29][0] = 0;
+	graf_irany[23][29][1] = 0;
+	graf_irany[23][32][0] = 0;
+	graf_irany[23][32][1] = 2;
+	graf_irany[23][32][2] = 0;
+	graf_irany[23][32][3] = 0;
+	graf_irany[23][32][4] = 0;
+	graf_irany[23][32][5] = 0;
+	graf_irany[23][32][6] = 0;
+	graf_irany[24][12][0] = 2;
+	graf_irany[24][12][1] = 1;
+	graf_irany[24][12][2] = 0;
+	graf_irany[24][12][3] = 1;
+	graf_irany[24][16][0] = 2;
+	graf_irany[24][16][1] = 1;
+	graf_irany[24][16][2] = 2;
+	graf_irany[24][18][0] = 2;
+	graf_irany[24][18][0] = 0;
+	graf_irany[24][20][0] = 0;
+	graf_irany[24][22][0] = 1; 	// L csucs kesz
+	graf_irany[25][29][0] = 0;
+	graf_irany[25][29][1] = 0;
+	graf_irany[25][32][0] = 0;
+	graf_irany[25][32][1] = 2;
+	graf_irany[25][32][2] = 0;
+	graf_irany[25][32][3] = 0;
+	graf_irany[25][32][4] = 0;
+	graf_irany[25][32][5] = 0;
+	graf_irany[25][32][6] = 0;
+	graf_irany[26][12][0] = 2;
+	graf_irany[26][12][1] = 1;
+	graf_irany[26][12][2] = 0;
+	graf_irany[26][12][3] = 1;
+	graf_irany[26][16][0] = 2;
+	graf_irany[26][16][1] = 1;
+	graf_irany[26][16][2] = 2;
+	graf_irany[26][18][0] = 2;
+	graf_irany[26][18][1] = 0;
+	graf_irany[26][20][0] = 0;
+	graf_irany[26][22][0] = 1;
+	graf_irany[27][31][0] = 2;
+	graf_irany[27][31][1] = 2;
+	graf_irany[27][31][2] = 2;
+	graf_irany[27][31][3] = 2;
+	graf_irany[27][31][4] = 2;
+	graf_irany[28][12][0] = 2;
+	graf_irany[28][12][1] = 1;
+	graf_irany[28][12][2] = 0;
+	graf_irany[28][12][3] = 1;
+	graf_irany[28][16][0] = 2;
+	graf_irany[28][16][0] = 1;
+	graf_irany[28][16][0] = 2;
+	graf_irany[28][18][0] = 2;
+	graf_irany[28][18][0] = 0;
+	graf_irany[28][20][0] = 0;
+	graf_irany[28][22][0] = 1;
+	graf_irany[29][32][0] = 2;
+	graf_irany[29][32][1] = 0;
+	graf_irany[29][32][2] = 0;
+	graf_irany[29][32][3] = 0;
+	graf_irany[29][32][4] = 0;
+	graf_irany[29][32][5] = 0;
+	graf_irany[30][29][0] = 0;
+	graf_irany[30][32][0] = 2;
+	graf_irany[30][32][1] = 0;
+	graf_irany[30][32][2] = 0;
+	graf_irany[30][32][3] = 0;
+	graf_irany[30][32][4] = 0;
+	graf_irany[30][32][5] = 0;
+	graf_irany[31][24][0] = 0;
+	graf_irany[31][24][1] = 2;
+	graf_irany[31][26][0] = 0;
+	graf_irany[31][26][1] = 0;
+	// graf_irany[32][28][0] = -1;		egyenes ut vezet
 }
 
 void Kapuk_letilt(void) {
 	for(int i = 0; i < 6; i++) {
 		if			(kapuk[i] == 'a') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[1][i] = 5000000;
-				graf[2][i] = 5000000;
+				graf_csucs[1][i] = 5000000;
+				graf_csucs[2][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'b') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[3][i] = 5000000;
-				graf[4][i] = 5000000;
+				graf_csucs[3][i] = 5000000;
+				graf_csucs[4][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'c') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[5][i] = 5000000;
-				graf[6][i] = 5000000;
+				graf_csucs[5][i] = 5000000;
+				graf_csucs[6][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'd') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[7][i] = 5000000;
-				graf[8][i] = 5000000;
+				graf_csucs[7][i] = 5000000;
+				graf_csucs[8][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'e') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[9][i] = 5000000;
-				graf[10][i] = 5000000;
+				graf_csucs[9][i] = 5000000;
+				graf_csucs[10][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'f') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[11][i] = 5000000;
-				graf[12][i] = 5000000;
+				graf_csucs[11][i] = 5000000;
+				graf_csucs[12][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'g') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[13][i] = 5000000;
-				graf[14][i] = 5000000;
+				graf_csucs[13][i] = 5000000;
+				graf_csucs[14][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'h') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[15][i] = 5000000;
-				graf[16][i] = 5000000;
+				graf_csucs[15][i] = 5000000;
+				graf_csucs[16][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'i') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[17][i] = 5000000;
-				graf[18][i] = 5000000;
+				graf_csucs[17][i] = 5000000;
+				graf_csucs[18][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'j') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[19][i] = 5000000;
-				graf[20][i] = 5000000;
+				graf_csucs[19][i] = 5000000;
+				graf_csucs[20][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'k') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[21][i] = 5000000;
-				graf[22][i] = 5000000;
+				graf_csucs[21][i] = 5000000;
+				graf_csucs[22][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'l') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[23][i] = 5000000;
-				graf[24][i] = 5000000;
+				graf_csucs[23][i] = 5000000;
+				graf_csucs[24][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'm') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[25][i] = 5000000;
-				graf[26][i] = 5000000;
+				graf_csucs[25][i] = 5000000;
+				graf_csucs[26][i] = 5000000;
 			}
 		} else if	(kapuk[i] == 'n') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf[27][i] = 5000000;
-				graf[28][i] = 5000000;
+				graf_csucs[27][i] = 5000000;
+				graf_csucs[28][i] = 5000000;
+			}
+		}
+	}
+}
+
+void Iranyok_osszeallito(void) {
+	for(int i = 0; i < 50; i++) {
+		iranyok[i] = 9;				// 9: nem igazi iranyt jelol
+	}
+	for(int i = 9; 1 < i; i--) {
+		if(road[i] != -1) {
+			for(int j = 0; j < 8; j++) {
+				// road[i]-bol road[i-1]-be "0 2 0" beirni az iranyokba
+				if(graf_irany[ road[i] ] [ road[i-1] ] [ j ]  != -1) {
+					iranyok[iranyok_elem] = graf_irany[ road[i] ] [ road[i-1] ] [ j ];
+					iranyok_elem++;
+				}
 			}
 		}
 	}
