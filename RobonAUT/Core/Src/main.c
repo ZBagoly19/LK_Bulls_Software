@@ -354,7 +354,7 @@ bool tolatas = false;
 
 double cel = 0;
 float szervoSzog = 90;
-int szervoSzog_emlek = 90;
+//int szervoSzog_emlek = 90;
 double kormanyzas_agresszivitas = 0.35;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[    tolatashoz: kb 0.7
 
 
@@ -377,14 +377,18 @@ int bluetooth_len = 0;
 char bluetooth_buffer[100] = { 0 };
 int bluetooth_i = 0;
 
-uint8_t kapuk[6] = { 0 };
+uint8_t kapuk[6] = { 'G', 'b', 'c'};
 uint8_t temp_radio = '?';
 uint8_t letsGo = 0;
 
-int road[10] = {18, 28, 32, 30, -1, -1, -1, -1, -1, -1};
+int road[10] = {1, 11, 12, -1, -1, -1, -1, -1, -1, -1};
 int graf_csucs[CSUCS_SZAM][CSUCS_SZAM];
 int graf_irany[CSUCS_SZAM][CSUCS_SZAM][8];
 uint8_t iranyok_elem = 0;
+
+int source = -1;
+int target1 = -1;
+int target2 = -1;
 
 
 uint8_t timer_counter = 0;
@@ -424,13 +428,14 @@ void Vonalas_tombok_feltoltese(void);
 void Szervo_szog_beallit(void);
 void Irany_valaszto(void);
 void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany);
-int minDistance(int dist[], bool sptSet[]);
-void dijkstra(int graph[CSUCS_SZAM][CSUCS_SZAM], int src, int target1, int target2);
+int MinDistance(int dist[], bool sptSet[]);
+void Dijkstra(int graph[CSUCS_SZAM][CSUCS_SZAM], int src, int target1, int target2);
 void Graf_csucs_feltolt(void);
 void Graf_irany_feltolt(void);
 void Kapuk_letilt(void);
 void Iranyok_torlo(void);
 void Iranyok_osszeallito(void);
+void Source_Target_allito(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -540,6 +545,10 @@ int main(void)
 	//Vonalszenzor inicializacio
 	Vonalszenzor_Init();
 
+	Source_Target_allito();
+	Graf_csucs_feltolt();
+	Kapuk_letilt();
+	Dijkstra(graf_csucs, source, target1, target2);
 	Graf_irany_feltolt();
 	Iranyok_torlo();
 	Iranyok_osszeallito();
@@ -1708,7 +1717,7 @@ void Irany_valaszto(void) {
 			bool ok = true;
 			int i = 0;
 			while(vonalak_e[i] < 33) {		//kulonben '-' van benne, ami 45
-				if((-9 > vonal_kovetni_e - (vonalak_e[i] - 16))  ||  (vonal_kovetni_e - (vonalak_e[i] - 16) > 9)) {
+				if((-8 > vonal_kovetni_e - (vonalak_e[i] - 16))  ||  (vonal_kovetni_e - (vonalak_e[i] - 16) > 8)) {
 					//if((-9.5 > vonal_kovetni_h - (vonalak_h[i] - 16))  ||  (vonal_kovetni_h - (vonalak_h[i] - 16) > 9.5)) {
 				// ha barhol van olyan vonal, ami tul messze van az aktualisan kovetettol
 						ok = false;
@@ -1718,7 +1727,7 @@ void Irany_valaszto(void) {
 			}
 			if(ok == true) {
 				kereszt_cnt++;
-				if(16 < kereszt_cnt) {
+				if(11 < kereszt_cnt) {
 					keresztezodesben = true;
 					tolatas = false;
 					aktualis_irany = iranyok[keresztezodes_szam];
@@ -1731,6 +1740,7 @@ void Irany_valaszto(void) {
 						//motvez_k = motvez_d / 2;	// ez a megallas
 						keresztezodes_szam++;
 						motvez_k = 450;
+						kormanyzas_agresszivitas = 0.35;
 					}
 				}
 			}
@@ -1774,7 +1784,7 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany) {
 	} else {									// irany == 1: kozep es egyeb, rossz iranyokra is ezt csinaljuk
 		for(int i=0; i < 5; i++) {				// 6: vonalak[] merete
 			if((vonalak_e[i] < 33)  &&			// kulonben '-' van benne, ami 45
-			   ((-7 < vonal_kovetni_e - (vonalak_e[i] - 16))  &&  (vonal_kovetni_e - (vonalak_e[i] - 16) < 7))) {
+			   ((-5 < vonal_kovetni_e - (vonalak_e[i] - 16))  &&  (vonal_kovetni_e - (vonalak_e[i] - 16) < 5))) {
 				elso_sum += vonalak_e[i] - 16;
 				e_db += 1.0;
 			}
@@ -1810,8 +1820,9 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany) {
 void Szervo_szog_beallit(void) {
 	if (btnEnable == 1 && szervoEnable == 1) {
 		if (tolatas == true) {		// tolatas	// 10 - (10- -7)*0.5 =
+			kormanyzas_agresszivitas = 0.7;
 			cel = vonal_kovetni_h + (((vonal_kovetni_h) - (vonal_kovetni_e)) *kormanyzas_agresszivitas);
-			motvez_k = 572;
+			motvez_k = 560;
 		} else {				// elore menet es rossz input
 			cel = vonal_kovetni_e + (((vonal_kovetni_e) - (vonal_kovetni_h)) *kormanyzas_agresszivitas);
 			//motvez_k = 455;
@@ -1830,7 +1841,7 @@ void Szervo_szog_beallit(void) {
 
 // A utility function to find the vertex with minimum distance value, from
 // the set of vertices not yet included in shortest path tree
-int minDistance(int dist[], bool sptSet[])
+int MinDistance(int dist[], bool sptSet[])
 {
     // Initialize min value
     int min = INT_MAX, min_index;
@@ -1842,9 +1853,65 @@ int minDistance(int dist[], bool sptSet[])
     return min_index;
 }
 
+
+void Source_Target_allito(void) {
+    source = road[0];
+
+    if            (kapuk[0] == 'A') {
+            target1 = 1;
+            target2 = 2;
+    } else if    (kapuk[0] == 'B') {
+            target1 = 3;
+            target2 = 4;
+    } else if    (kapuk[0] == 'C') {
+            target1 = 5;
+            target2 = 6;
+    } else if    (kapuk[0] == 'D') {
+            target1 = 7;
+            target2 = 8;
+    } else if    (kapuk[0] == 'E') {
+            target1 = 9;
+            target2 = 10;
+    } else if    (kapuk[0] == 'F') {
+            target1 = 11;
+            target2 = 12;
+    } else if    (kapuk[0] == 'G') {
+            target1 = 13;
+            target2 = 14;
+    } else if    (kapuk[0] == 'H') {
+            target1 = 15;
+            target2 = 16;
+    } else if    (kapuk[0] == 'I') {
+            target1 = 17;
+            target2 = 18;
+    } else if    (kapuk[0] == 'J') {
+            target1 = 19;
+            target2 = 20;
+    } else if    (kapuk[0] == 'K') {
+            target1 = 21;
+            target2 = 22;
+    } else if    (kapuk[0] == 'L') {
+            target1 = 23;
+            target2 = 24;
+    } else if    (kapuk[0] == 'M') {
+            target1 = 25;
+            target2 = 26;
+    } else if    (kapuk[0] == 'N') {
+            target1 = 27;
+            target2 = 28;
+    } else if    (kapuk[0] == 'O') {
+            target1 = 29;
+            target2 = 29;
+    } else if    (kapuk[0] == 'X') {
+            target1 = 31;
+            target2 = 32;
+    }
+}
+
+
 // Function that implements Dijkstra's single source shortest path algorithm
 // for a graph represented using adjacency matrix representation
-void dijkstra(int graph[CSUCS_SZAM][CSUCS_SZAM], int src, int target1, int target2) {
+void Dijkstra(int graph[CSUCS_SZAM][CSUCS_SZAM], int src, int target1, int target2) {
 	int dist[CSUCS_SZAM]; // The output array. dist[i] will hold the shortest
 	// distance from src to i
   	int r[CSUCS_SZAM];
@@ -1866,7 +1933,7 @@ void dijkstra(int graph[CSUCS_SZAM][CSUCS_SZAM], int src, int target1, int targe
 	for (int count = 0; count < CSUCS_SZAM - 1; count++) {
 		// Pick the minimum distance vertex from the set of vertices not
 		// yet processed. u is always equal to src in the first iteration.
-		int u = minDistance(dist, sptSet);
+		int u = MinDistance(dist, sptSet);
 
 		// Mark the picked vertex as processed
 		sptSet[u] = true;
@@ -2011,9 +2078,9 @@ void Graf_irany_feltolt(void) {
 	graf_irany[3][9][0] = 2;
 	graf_irany[3][11][0] = 0;
 	graf_irany[3][11][1] = 1;
-	graf_irany[3][11][2] = 1;
+	graf_irany[3][11][2] = 2;
 	graf_irany[4][1][0] = 0;
-	graf_irany[4][2][0] = 1;
+	graf_irany[4][2][0] = 2;
 	graf_irany[5][11][0] = 0;
 	graf_irany[5][11][1] = 2;
 	graf_irany[6][1][0] = 0;
@@ -2104,17 +2171,17 @@ void Graf_irany_feltolt(void) {
 	graf_irany[23][32][2] = 0;
 	graf_irany[23][32][3] = 0;
 	graf_irany[23][32][4] = 0;
-	graf_irany[23][32][5] = 0;
-	graf_irany[23][32][6] = 0;
+	//graf_irany[23][32][5] = 0;
+	//graf_irany[23][32][6] = 0;
 	graf_irany[24][12][0] = 2;
-	graf_irany[24][12][1] = 1;
+	graf_irany[24][12][1] = 2;
 	graf_irany[24][12][2] = 0;
 	graf_irany[24][12][3] = 1;
 	graf_irany[24][16][0] = 2;
-	graf_irany[24][16][1] = 1;
+	graf_irany[24][16][1] = 2;
 	graf_irany[24][16][2] = 2;
 	graf_irany[24][18][0] = 2;
-	graf_irany[24][18][0] = 0;
+	graf_irany[24][18][1] = 0;
 	graf_irany[24][20][0] = 0;
 	graf_irany[24][22][0] = 1; 	// L csucs kesz
 	graf_irany[25][29][0] = 0;
@@ -2124,14 +2191,14 @@ void Graf_irany_feltolt(void) {
 	graf_irany[25][32][2] = 0;
 	graf_irany[25][32][3] = 0;
 	graf_irany[25][32][4] = 0;
-	graf_irany[25][32][5] = 0;
-	graf_irany[25][32][6] = 0;
+	//graf_irany[25][32][5] = 0;
+	//graf_irany[25][32][6] = 0;
 	graf_irany[26][12][0] = 2;
-	graf_irany[26][12][1] = 1;
+	graf_irany[26][12][1] = 2;
 	graf_irany[26][12][2] = 0;
 	graf_irany[26][12][3] = 1;
 	graf_irany[26][16][0] = 2;
-	graf_irany[26][16][1] = 1;
+	graf_irany[26][16][1] = 2;
 	graf_irany[26][16][2] = 2;
 	graf_irany[26][18][0] = 2;
 	graf_irany[26][18][1] = 0;
@@ -2140,32 +2207,33 @@ void Graf_irany_feltolt(void) {
 	graf_irany[27][31][0] = 2;
 	graf_irany[27][31][1] = 2;
 	graf_irany[27][31][2] = 2;
-	graf_irany[27][31][3] = 2;
-	graf_irany[27][31][4] = 2;
+	//graf_irany[27][31][3] = 2;
+	//graf_irany[27][31][4] = 2;
 	graf_irany[28][12][0] = 2;
-	graf_irany[28][12][1] = 1;
+	graf_irany[28][12][1] = 2;
 	graf_irany[28][12][2] = 0;
 	graf_irany[28][12][3] = 1;
 	graf_irany[28][16][0] = 2;
-	graf_irany[28][16][0] = 1;
-	graf_irany[28][16][0] = 2;
+	graf_irany[28][16][1] = 2;
+	graf_irany[28][16][2] = 2;
 	graf_irany[28][18][0] = 2;
 	graf_irany[28][18][1] = 0;
 	graf_irany[28][20][0] = 0;
 	graf_irany[28][22][0] = 1;
+	//graf_irany[29][32][0] = 2;
 	graf_irany[29][32][0] = 2;
 	graf_irany[29][32][1] = 0;
 	graf_irany[29][32][2] = 0;
 	graf_irany[29][32][3] = 0;
-	graf_irany[29][32][4] = 0;
-	graf_irany[29][32][5] = 0;
+	//graf_irany[29][32][4] = 0;
+	//graf_irany[29][32][5] = 0;
 	graf_irany[30][29][0] = 0;
 	graf_irany[30][32][0] = 2;
 	graf_irany[30][32][1] = 0;
 	graf_irany[30][32][2] = 0;
 	graf_irany[30][32][3] = 0;
-	graf_irany[30][32][4] = 0;
-	graf_irany[30][32][5] = 0;
+	//graf_irany[30][32][4] = 0;
+	//graf_irany[30][32][5] = 0;
 	graf_irany[31][24][0] = 0;
 	graf_irany[31][24][1] = 2;
 	graf_irany[31][26][0] = 0;
@@ -2177,73 +2245,73 @@ void Kapuk_letilt(void) {
 	for(int i = 0; i < 6; i++) {
 		if			(kapuk[i] == 'a') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[1][i] = 5000000;
-				graf_csucs[2][i] = 5000000;
+				graf_csucs[1][j] = 5000000;
+				graf_csucs[2][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'b') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[3][i] = 5000000;
-				graf_csucs[4][i] = 5000000;
+				graf_csucs[3][j] = 5000000;
+				graf_csucs[4][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'c') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[5][i] = 5000000;
-				graf_csucs[6][i] = 5000000;
+				graf_csucs[5][j] = 5000000;
+				graf_csucs[6][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'd') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[7][i] = 5000000;
-				graf_csucs[8][i] = 5000000;
+				graf_csucs[7][j] = 5000000;
+				graf_csucs[8][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'e') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[9][i] = 5000000;
-				graf_csucs[10][i] = 5000000;
+				graf_csucs[9][j] = 5000000;
+				graf_csucs[10][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'f') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[11][i] = 5000000;
-				graf_csucs[12][i] = 5000000;
+				graf_csucs[11][j] = 5000000;
+				graf_csucs[12][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'g') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[13][i] = 5000000;
-				graf_csucs[14][i] = 5000000;
+				graf_csucs[13][j] = 5000000;
+				graf_csucs[14][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'h') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[15][i] = 5000000;
-				graf_csucs[16][i] = 5000000;
+				graf_csucs[15][j] = 5000000;
+				graf_csucs[16][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'i') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[17][i] = 5000000;
-				graf_csucs[18][i] = 5000000;
+				graf_csucs[17][j] = 5000000;
+				graf_csucs[18][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'j') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[19][i] = 5000000;
-				graf_csucs[20][i] = 5000000;
+				graf_csucs[19][j] = 5000000;
+				graf_csucs[20][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'k') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[21][i] = 5000000;
-				graf_csucs[22][i] = 5000000;
+				graf_csucs[21][j] = 5000000;
+				graf_csucs[22][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'l') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[23][i] = 5000000;
-				graf_csucs[24][i] = 5000000;
+				graf_csucs[23][j] = 5000000;
+				graf_csucs[24][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'm') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[25][i] = 5000000;
-				graf_csucs[26][i] = 5000000;
+				graf_csucs[25][j] = 5000000;
+				graf_csucs[26][j] = 5000000;
 			}
 		} else if	(kapuk[i] == 'n') {
 			for(int j = 1; j < CSUCS_SZAM; j++) {
-				graf_csucs[27][i] = 5000000;
-				graf_csucs[28][i] = 5000000;
+				graf_csucs[27][j] = 5000000;
+				graf_csucs[28][j] = 5000000;
 			}
 		}
 	}
