@@ -345,7 +345,7 @@ double vonal_kovetni_h = 0;
 double vonal_kovetni_e = 0;
 
 uint8_t iranyok[20];
-uint8_t iranyok1[] = { 2, 0,2 };
+//uint8_t iranyok1[] = { 2, 0,2 };
 uint8_t aktualis_irany = 1;
 uint8_t keresztezodes_szam = 0;
 bool keresztezodesben = false;		// 0: egyenesben; 1: keresztezodesben
@@ -377,11 +377,14 @@ int bluetooth_len = 0;
 char bluetooth_buffer[100] = { 0 };
 int bluetooth_i = 0;
 
-uint8_t kapuk[6] = { 'G', 'b', 'c'};
+uint8_t kapuk[6] = { 'E', 'd', 'c'};
 uint8_t temp_radio = '?';
-uint8_t letsGo = 0;
+bool letsGo = false;
+uint8_t radio_i = 0;
+bool uj_kapu = false;
 
-int road[10] = {1, 11, 12, -1, -1, -1, -1, -1, -1, -1};
+int road[20] = {12, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+				-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 int graf_csucs[CSUCS_SZAM][CSUCS_SZAM];
 int graf_irany[CSUCS_SZAM][CSUCS_SZAM][8];
 uint8_t iranyok_elem = 0;
@@ -392,6 +395,7 @@ int target2 = -1;
 
 
 uint8_t timer_counter = 0;
+bool olvasok = false;
 
 
 //Tavolsagszenzor I2C addresses of GPIO expanders on the X-NUCLEO-53L1A1
@@ -436,11 +440,34 @@ void Kapuk_letilt(void);
 void Iranyok_torlo(void);
 void Iranyok_osszeallito(void);
 void Source_Target_allito(void);
+void Kapukbol_iranyok(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
+	olvasok = true;
+	HAL_UART_Receive_IT(&huart1, &temp_radio, 1);
+	if(temp_radio == 0x30)
+		letsGo = true;
+	if(temp_radio < 0x60 && 0x40 < temp_radio) {
+		if(temp_radio != kapuk[0]) {
+			uj_kapu = true;
+		} else {
+			uj_kapu = false;
+		}
+		radio_i = 0;
+		for(int j=0; j < 6; j++)
+			kapuk[j] = '-';
+	}
+	kapuk[radio_i] = temp_radio;
+	radio_i++;
+
+	if(uj_kapu == true && temp_radio == '\n') {
+		Kapukbol_iranyok();
+	}
+	olvasok = false;
+
 	/*if (huart == &huart2) {
 		//erosen kerdeses
 		if (bluetooth_rx == 0x0A)
@@ -453,26 +480,28 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
-	if (htim == &htim2) {
-		timer_counter += 1;
-		if(9 < timer_counter) {
-			Vonalas_tombok_torlese();
-			Vonalszenzor_operal(vonal_eredmeny_h, vonal_eredmeny_e);
-			Vonalas_tombok_feltoltese();
-			Irany_valaszto();
-			Kovetendo_vonal_valaszto(&vonal_kovetni_e, &vonal_kovetni_h, aktualis_irany);
-			Szervo_szog_beallit();
-			timer_counter = 0;
-		}
+	if (olvasok == false) {
+		if (htim == &htim2) {
+			timer_counter += 1;
+			if(9 < timer_counter) {
+				Vonalas_tombok_torlese();
+				Vonalszenzor_operal(vonal_eredmeny_h, vonal_eredmeny_e);
+				Vonalas_tombok_feltoltese();
+				Irany_valaszto();
+				Kovetendo_vonal_valaszto(&vonal_kovetni_e, &vonal_kovetni_h, aktualis_irany);
+				Szervo_szog_beallit();
+				timer_counter = 0;
+			}
 
-		//itt kell kiirni amire kivancsiak vagyunk a stringben*/
-		/*sprintf(bluetooth_buffer,
-				"%i -edik uzenet \t kivant sebesseg: %i \t allapot: %c kanyar/egyenes: %c \r\n",
-				bluetooth_i, kivant_sebesseg, sc_vagy_gyorskor,
-				kanyarban_vagy_egyenes);
-		bluetooth_i++;
-		bluetooth_len = strlen(bluetooth_buffer);
-		//HAL_UART_Transmit(&huart2, bluetooth_buffer, bluetooth_len, 100);*/
+			//itt kell kiirni amire kivancsiak vagyunk a stringben*/
+			/*sprintf(bluetooth_buffer,
+					"%i -edik uzenet \t kivant sebesseg: %i \t allapot: %c kanyar/egyenes: %c \r\n",
+					bluetooth_i, kivant_sebesseg, sc_vagy_gyorskor,
+					kanyarban_vagy_egyenes);
+			bluetooth_i++;
+			bluetooth_len = strlen(bluetooth_buffer);
+			//HAL_UART_Transmit(&huart2, bluetooth_buffer, bluetooth_len, 100);*/
+		}
 	}
 }
 /* USER CODE END 0 */
@@ -531,7 +560,7 @@ int main(void)
 	DC_MOTOR_Start(DC_MOTOR_PWM1, 0);
 	DC_MOTOR_Start(DC_MOTOR_PWM2, 0);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);		// motvez EN
-	motvez_k = 455;
+	motvez_k = motvez_d / 2;   									//455
 
 	Vonalszenzor_minta_kuldes(leszed);
 	Vonalszenzor_minta_kuldes(teszt_minta);		//csak hogy lassuk, hogy bekapcsolt
@@ -545,14 +574,8 @@ int main(void)
 	//Vonalszenzor inicializacio
 	Vonalszenzor_Init();
 
-	Source_Target_allito();
-	Graf_csucs_feltolt();
-	Kapuk_letilt();
-	Dijkstra(graf_csucs, source, target1, target2);
 	Graf_irany_feltolt();
-	Iranyok_torlo();
-	Iranyok_osszeallito();
-
+	HAL_UART_Receive_IT(&huart1, &temp_radio, 1);
 
 	// initialize vl53l1x communication parameters
 	Dev->I2cHandle = &hi2c1;
@@ -602,11 +625,19 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
 	while (1) {
+		/*if(uj_kapu == true && temp_radio == '\n') {
+			Kapukbol_iranyok();
+		}
+
+		if(kesz == true) {
+			kesz = false;
+		}*/
+
 		//radios modul
 		/*for(int i=0; i < 6; i++) {
 			HAL_UART_Receive(&huart1, &temp_radio, 1, 1000);	//ez nagyon nagyon hosszu, all miatta a while(1)
 			if(temp_radio == 0x30)
-				letsGo = 1;
+				letsGo = true;
 			if(temp_radio < 0x60 && 0x40 < temp_radio) {
 				i = 0;
 				for(int j=0; j < 6; j++)
@@ -665,6 +696,9 @@ int main(void)
 					tolatas = true;
 					kormanyzas_agresszivitas = 0.7;
 				}*/
+				if(letsGo == true){
+					motvez_k = 450;
+				}
 				//if (motvez_d /2 > motvez_k) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_k); 		// ha pwm1 nagyobb, hatramenet
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - motvez_k);
@@ -966,9 +1000,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 500-1;
+  htim2.Init.Prescaler = 45-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 90-1;
+  htim2.Init.Period = 1000-1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -1409,7 +1443,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 1);
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 1, 2);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
@@ -1727,19 +1761,17 @@ void Irany_valaszto(void) {
 			}
 			if(ok == true) {
 				kereszt_cnt++;
-				if(11 < kereszt_cnt) {
+				if(13 < kereszt_cnt) {
 					keresztezodesben = true;
 					tolatas = false;
 					aktualis_irany = iranyok[keresztezodes_szam];
 					if(aktualis_irany == 9) {
 						motvez_k = motvez_d / 2;	// ez a megallas
-					}
-					/*if(keresztezodes_szam < sizeof(iranyok1) / sizeof(iranyok1[0])) {
-						keresztezodes_szam++;
-					}*/ else {
+						letsGo = false;
+					} else {
 						//motvez_k = motvez_d / 2;	// ez a megallas
 						keresztezodes_szam++;
-						motvez_k = 450;
+						letsGo = true;
 						kormanyzas_agresszivitas = 0.35;
 					}
 				}
@@ -1908,6 +1940,14 @@ void Source_Target_allito(void) {
     }
 }
 
+void Kapukbol_iranyok(void) {
+	Source_Target_allito();
+	Graf_csucs_feltolt();
+	Kapuk_letilt();
+	Dijkstra(graf_csucs, source, target1, target2);
+	Iranyok_torlo();
+	Iranyok_osszeallito();
+}
 
 // Function that implements Dijkstra's single source shortest path algorithm
 // for a graph represented using adjacency matrix representation
@@ -1954,7 +1994,7 @@ void Dijkstra(int graph[CSUCS_SZAM][CSUCS_SZAM], int src, int target1, int targe
   	if(dist[target2] < dist[target1])
       	ultimate_trg = target2;
 
-  	for(int i = 0; i < 10; i++) {
+  	for(int i = 0; i < 20; i++) {
       	road[i] = -1;
     }
   	road[0] = ultimate_trg;
@@ -2085,7 +2125,7 @@ void Graf_irany_feltolt(void) {
 	graf_irany[5][11][1] = 2;
 	graf_irany[6][1][0] = 0;
 	graf_irany[6][1][1] = 0;
-	graf_irany[6][2][0] = 1; 	// C csucs kesz
+	graf_irany[6][2][0] = 0; 	// C csucs kesz
 	graf_irany[6][2][1] = 2; 	// C csucs kesz
 	graf_irany[7][11][0] = 1;
 	graf_irany[8][1][0] = 1;
@@ -2324,7 +2364,8 @@ void Iranyok_torlo(void) {
 }
 
 void Iranyok_osszeallito(void) {
-	for(int i = 9; 0 < i; i--) {
+	iranyok_elem = 0;
+	for(int i = 19; 0 < i; i--) {
 		if(road[i] != -1) {
 			if(road[i] == 29) {
 				tolatas = true;
@@ -2338,6 +2379,7 @@ void Iranyok_osszeallito(void) {
 			}
 		}
 	}
+	keresztezodes_szam = 0;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
