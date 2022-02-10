@@ -350,7 +350,9 @@ uint8_t aktualis_irany = 1;
 uint8_t keresztezodes_szam = 0;
 bool keresztezodesben = false;		// 0: egyenesben; 1: keresztezodesben
 uint8_t kereszt_cnt = 0;
+uint8_t egyenes_cnt = 0;
 bool tolatas = false;
+uint8_t kovi_irany = 9;
 
 double cel = 0;
 float szervoSzog = 90;
@@ -359,7 +361,7 @@ double kormanyzas_agresszivitas = 0.35;			//elvileg minel nagyobb, annal agressz
 
 
 int motvez_d = 1023;
-int motvez_k = 0;
+int motvez_k = 512;
 int veretesi_cnt = 0;
 int fekezes_cnt = 0;
 
@@ -383,7 +385,7 @@ bool letsGo = false;
 uint8_t radio_i = 0;
 bool uj_kapu = false;
 
-int road[20] = {12, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+int road[20] = {29, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 				-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 int graf_csucs[CSUCS_SZAM][CSUCS_SZAM];
 int graf_irany[CSUCS_SZAM][CSUCS_SZAM][8];
@@ -453,6 +455,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
 	if(temp_radio < 0x60 && 0x40 < temp_radio) {
 		if(temp_radio != kapuk[0]) {
 			uj_kapu = true;
+			letsGo = true;
 		} else {
 			uj_kapu = false;
 		}
@@ -697,7 +700,11 @@ int main(void)
 					kormanyzas_agresszivitas = 0.7;
 				}*/
 				if(letsGo == true){
-					motvez_k = 450;
+					if(tolatas == true) {
+						motvez_k = 560;
+					} else {
+						motvez_k = 455;
+					}
 				}
 				//if (motvez_d /2 > motvez_k) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_k); 		// ha pwm1 nagyobb, hatramenet
@@ -1759,12 +1766,16 @@ void Irany_valaszto(void) {
 				}
 				i++;
 			}
+			if(egyenes_cnt < 30)
+				ok = false;
 			if(ok == true) {
 				kereszt_cnt++;
 				if(13 < kereszt_cnt) {
 					keresztezodesben = true;
 					tolatas = false;
 					aktualis_irany = iranyok[keresztezodes_szam];
+					egyenes_cnt = 0;
+					kovi_irany = iranyok[keresztezodes_szam + 1];
 					if(aktualis_irany == 9) {
 						motvez_k = motvez_d / 2;	// ez a megallas
 						letsGo = false;
@@ -1782,6 +1793,8 @@ void Irany_valaszto(void) {
 		aktualis_irany = 1;
 		kereszt_cnt = 0;
 	}
+	if(egyenes_cnt < 200)
+		egyenes_cnt++;
 }
 
 void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany) {
@@ -2226,7 +2239,7 @@ void Graf_irany_feltolt(void) {
 	graf_irany[24][22][0] = 1; 	// L csucs kesz
 	graf_irany[25][29][0] = 0;
 	graf_irany[25][29][1] = 0;
-	graf_irany[25][32][0] = 0;
+	graf_irany[25][32][0] = 1;
 	graf_irany[25][32][1] = 2;
 	graf_irany[25][32][2] = 0;
 	graf_irany[25][32][3] = 0;
@@ -2263,8 +2276,8 @@ void Graf_irany_feltolt(void) {
 	//graf_irany[29][32][0] = 2;
 	graf_irany[29][32][0] = 2;
 	graf_irany[29][32][1] = 0;
-	graf_irany[29][32][2] = 0;
-	graf_irany[29][32][3] = 0;
+	//graf_irany[29][32][2] = 0;
+	//graf_irany[29][32][3] = 0;
 	//graf_irany[29][32][4] = 0;
 	//graf_irany[29][32][5] = 0;
 	graf_irany[30][29][0] = 0;
