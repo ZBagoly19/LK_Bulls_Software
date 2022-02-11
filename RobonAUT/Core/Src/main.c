@@ -357,7 +357,7 @@ uint8_t kovi_irany = 9;
 double cel = 0;
 float szervoSzog = 90;
 //int szervoSzog_emlek = 90;
-double kormanyzas_agresszivitas = 0.35;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[    tolatashoz: kb 0.7
+double kormanyzas_agresszivitas = 0.42;			//elvileg minel nagyobb, annal agresszivabb; ]0, vegtelen[    tolatashoz: kb 0.7
 
 
 int motvez_d = 1023;
@@ -379,13 +379,13 @@ int bluetooth_len = 0;
 char bluetooth_buffer[100] = { 0 };
 int bluetooth_i = 0;
 
-uint8_t kapuk[6] = { 'E', 'd', 'c'};
+uint8_t kapuk[6] = { 'I', 'k'};
 uint8_t temp_radio = '?';
 bool letsGo = false;
 uint8_t radio_i = 0;
 bool uj_kapu = false;
 
-int road[20] = {29, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+int road[20] = {30, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 				-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 int graf_csucs[CSUCS_SZAM][CSUCS_SZAM];
 int graf_irany[CSUCS_SZAM][CSUCS_SZAM][8];
@@ -507,6 +507,56 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		}
 	}
 }
+/*
+void Delay_Microsec_tav1(uint16_t time){
+	__HAL_TIM_SET_COUNTER(&htim1, 0);
+	while(__HAL_TIM_GET_COUNTER(&htim1) < time);
+}
+
+uint32_t ic_TAV1_val1 = 0;
+uint32_t ic_TAV1_val2 = 0;
+uint32_t difference_tav1 = 0;
+bool is_first_captured_tav1 = false;
+uint16_t distance_tav1 = 0;
+#define TAV1_PORT GPIOB
+#define TAV1_PIN GPIO_PIN_10
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef * htim) {
+	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
+		if(is_first_captured_tav1 == false) {
+			ic_TAV1_val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+			is_first_captured_tav1 = true;
+			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
+		} else if (is_first_captured_tav1 == true) {
+			ic_TAV1_val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+			__HAL_TIM_SET_COUNTER(htim, 0);
+
+			if(ic_TAV1_val1 < ic_TAV1_val2) {
+				difference_tav1 = ic_TAV1_val2 - ic_TAV1_val1;
+			}
+			else if (ic_TAV1_val2 < ic_TAV1_val1) {
+				difference_tav1 = (0xffff - ic_TAV1_val1) + ic_TAV1_val2;
+			}
+
+			distance_tav1 = difference_tav1 * .034/2;
+			is_first_captured_tav1 = false;
+
+			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
+			__HAL_TIM_DISABLE_IT(&htim1, TIM_IT_CC1);
+
+		}
+	}
+}
+void HCSR04_1_Read(void) {
+	HAL_GPIO_WritePin(TAV1_PORT, TAV1_PIN, GPIO_PIN_SET);
+	Delay_Microsec_tav1(11);
+	HAL_GPIO_WritePin(TAV1_PORT, TAV1_PIN, GPIO_PIN_RESET);
+
+	__HAL_TIM_ENABLE_IT(&htim1, TIM_IT_CC1);
+}
+*/
+
+
 /* USER CODE END 0 */
 
 /**
@@ -573,11 +623,13 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim2);
 
 	HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_2);   //PWM jel start
+	//HAL_TIM_IC_START_IT_(&htim1, TIM_CHANNEL_1);
 
 	//Vonalszenzor inicializacio
 	Vonalszenzor_Init();
 
 	Graf_irany_feltolt();
+	//Kapukbol_iranyok();
 	HAL_UART_Receive_IT(&huart1, &temp_radio, 1);
 
 	// initialize vl53l1x communication parameters
@@ -628,6 +680,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
 	while (1) {
+		/*
+		HCSR04_1_Read();
+		HAL_Delay(1);*/
+
 		/*if(uj_kapu == true && temp_radio == '\n') {
 			Kapukbol_iranyok();
 		}
@@ -701,9 +757,9 @@ int main(void)
 				}*/
 				if(letsGo == true){
 					if(tolatas == true) {
-						motvez_k = 560;
+						motvez_k = 570;
 					} else {
-						motvez_k = 455;
+						motvez_k = 445;
 					}
 				}
 				//if (motvez_d /2 > motvez_k) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
@@ -1766,11 +1822,11 @@ void Irany_valaszto(void) {
 				}
 				i++;
 			}
-			if(egyenes_cnt < 30)
+			if(egyenes_cnt < 50)
 				ok = false;
 			if(ok == true) {
 				kereszt_cnt++;
-				if(13 < kereszt_cnt) {
+				if(9 < kereszt_cnt) {
 					keresztezodesben = true;
 					tolatas = false;
 					aktualis_irany = iranyok[keresztezodes_szam];
@@ -1783,12 +1839,12 @@ void Irany_valaszto(void) {
 						//motvez_k = motvez_d / 2;	// ez a megallas
 						keresztezodes_szam++;
 						letsGo = true;
-						kormanyzas_agresszivitas = 0.35;
+						kormanyzas_agresszivitas = 0.42;
 					}
 				}
 			}
 		}
-	} else if(33 < vonalak_e[1]) {
+	} else if(33 < vonalak_e[1] && 50 < egyenes_cnt) {
 		keresztezodesben = false;
 		aktualis_irany = 1;
 		kereszt_cnt = 0;
@@ -1804,7 +1860,7 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany) {
 	double h_db = 0.0001;
 	if(irany == 0) {							// jobbra at
 		*elso = vonalak_e[0] - 16;
-		for(int i=0; i < 5; i++) {				// 6: vonalak[] merete
+		for(int i=0; i < 2; i++) {				// 6: vonalak[] merete
 			if((vonalak_h[i] < 33)  &&			// kulonben '-' van benne, ami 45
 			   ((-6 < vonal_kovetni_h - (vonalak_h[i] - 16))  &&  (vonal_kovetni_h - (vonalak_h[i] - 16) < 6))) {
 				hatso_sum += vonalak_h[i] - 16;
@@ -1818,7 +1874,7 @@ void Kovetendo_vonal_valaszto(double* elso, double* hatso, uint8_t irany) {
 			j--;
 		}
 		*elso = vonalak_e[j] - 16;
-		for(int i=0; i < 5; i++) {				// 6: vonalak[] merete
+		for(int i=0; i < 2; i++) {				// 6: vonalak[] merete
 			if((vonalak_h[i] < 33)  &&			// kulonben '-' van benne, ami 45
 			   ((-6 < vonal_kovetni_h - (vonalak_h[i] - 16))  &&  (vonal_kovetni_h - (vonalak_h[i] - 16) < 6))) {
 				hatso_sum += vonalak_h[i] - 16;
@@ -2223,7 +2279,7 @@ void Graf_irany_feltolt(void) {
 	graf_irany[23][32][1] = 2;
 	graf_irany[23][32][2] = 0;
 	graf_irany[23][32][3] = 0;
-	graf_irany[23][32][4] = 0;
+	//graf_irany[23][32][4] = 0;
 	//graf_irany[23][32][5] = 0;
 	//graf_irany[23][32][6] = 0;
 	graf_irany[24][12][0] = 2;
@@ -2243,7 +2299,7 @@ void Graf_irany_feltolt(void) {
 	graf_irany[25][32][1] = 2;
 	graf_irany[25][32][2] = 0;
 	graf_irany[25][32][3] = 0;
-	graf_irany[25][32][4] = 0;
+	//graf_irany[25][32][4] = 0;
 	//graf_irany[25][32][5] = 0;
 	//graf_irany[25][32][6] = 0;
 	graf_irany[26][12][0] = 2;
@@ -2259,7 +2315,7 @@ void Graf_irany_feltolt(void) {
 	graf_irany[26][22][0] = 1;
 	graf_irany[27][31][0] = 2;
 	graf_irany[27][31][1] = 2;
-	graf_irany[27][31][2] = 2;
+	//graf_irany[27][31][2] = 2;
 	//graf_irany[27][31][3] = 2;
 	//graf_irany[27][31][4] = 2;
 	graf_irany[28][12][0] = 2;
@@ -2273,10 +2329,9 @@ void Graf_irany_feltolt(void) {
 	graf_irany[28][18][1] = 0;
 	graf_irany[28][20][0] = 0;
 	graf_irany[28][22][0] = 1;
-	//graf_irany[29][32][0] = 2;
 	graf_irany[29][32][0] = 2;
 	graf_irany[29][32][1] = 0;
-	//graf_irany[29][32][2] = 0;
+	graf_irany[29][32][2] = 0;
 	//graf_irany[29][32][3] = 0;
 	//graf_irany[29][32][4] = 0;
 	//graf_irany[29][32][5] = 0;
@@ -2284,7 +2339,7 @@ void Graf_irany_feltolt(void) {
 	graf_irany[30][32][0] = 2;
 	graf_irany[30][32][1] = 0;
 	graf_irany[30][32][2] = 0;
-	graf_irany[30][32][3] = 0;
+	//graf_irany[30][32][3] = 0;
 	//graf_irany[30][32][4] = 0;
 	//graf_irany[30][32][5] = 0;
 	graf_irany[31][24][0] = 0;
