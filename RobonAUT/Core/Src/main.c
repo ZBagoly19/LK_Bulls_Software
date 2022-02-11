@@ -6,7 +6,7 @@
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
+ * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.8062
  * All rights reserved.</center></h2>
  *
  * This software component is licensed by ST under BSD 3-Clause license,
@@ -411,7 +411,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_I2C1_Init(void);
-static void MX_I2C2_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_TIM3_Init(void);
@@ -419,11 +418,12 @@ static void MX_TIM4_Init(void);
 static void MX_UART4_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_USART1_UART_Init(void);
-static void MX_I2C3_Init(void);
 static void MX_TIM12_Init(void);
 static void MX_DMA_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_I2C2_Init(void);
+static void MX_I2C3_Init(void);
 /* USER CODE BEGIN PFP */
 static void Vonalszenzor_Init(void);
 static void Vonalszenzor_operal(uint8_t teljes_kiolvasott_h[], uint8_t teljes_kiolvasott_e[]);
@@ -507,8 +507,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		}
 	}
 }
-/*
-void Delay_Microsec_tav1(uint16_t time){
+
+/*void Delay_Microsec_tav1(uint16_t time){
 	__HAL_TIM_SET_COUNTER(&htim1, 0);
 	while(__HAL_TIM_GET_COUNTER(&htim1) < time);
 }
@@ -553,8 +553,8 @@ void HCSR04_1_Read(void) {
 	HAL_GPIO_WritePin(TAV1_PORT, TAV1_PIN, GPIO_PIN_RESET);
 
 	__HAL_TIM_ENABLE_IT(&htim1, TIM_IT_CC1);
-}
-*/
+}*/
+
 
 
 /* USER CODE END 0 */
@@ -566,10 +566,10 @@ void HCSR04_1_Read(void) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t tavolsag1_buff[50];
+	/*uint8_t tavolsag1_buff[50];
 	VL53L1_RangingMeasurementData_t RangingData;
 	VL53L1_Dev_t vl53l1_c; // center module
-	VL53L1_DEV Dev = &vl53l1_c;
+	VL53L1_DEV Dev = &vl53l1_c;*/
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -592,7 +592,6 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_I2C1_Init();
-  MX_I2C2_Init();
   MX_SPI2_Init();
   MX_SPI3_Init();
   MX_TIM3_Init();
@@ -600,11 +599,12 @@ int main(void)
   MX_UART4_Init();
   MX_TIM8_Init();
   MX_USART1_UART_Init();
-  MX_I2C3_Init();
   MX_TIM12_Init();
   MX_DMA_Init();
   MX_TIM2_Init();
   MX_SPI1_Init();
+  MX_I2C2_Init();
+  MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
 	SERVO_Init(SZERVO);
 	SERVO_MoveTo(SZERVO, 90);
@@ -623,7 +623,6 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim2);
 
 	HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_2);   //PWM jel start
-	//HAL_TIM_IC_START_IT_(&htim1, TIM_CHANNEL_1);
 
 	//Vonalszenzor inicializacio
 	Vonalszenzor_Init();
@@ -631,14 +630,14 @@ int main(void)
 	Graf_irany_feltolt();
 	//Kapukbol_iranyok();
 	HAL_UART_Receive_IT(&huart1, &temp_radio, 1);
-
+/*
 	// initialize vl53l1x communication parameters
 	Dev->I2cHandle = &hi2c1;
-	Dev->I2cDevAddr = 0x52;
+	Dev->I2cDevAddr = 0x52;*/
 
 	/*** Initialize GPIO expanders ***/
 	// Unused GPIO should be configured as outputs to minimize the power consumption
-	tavolsag1_buff[0] = 0x14; // GPDR (GPIO set direction register)
+/*	tavolsag1_buff[0] = 0x14; // GPDR (GPIO set direction register)
 	tavolsag1_buff[1] = 0xFF; // GPIO_0 - GPIO_7
 	tavolsag1_buff[2] = 0xFF; // GPIO_8 - GPIO_15
 	HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, tavolsag1_buff, 3, 0xFFFF );
@@ -663,26 +662,28 @@ int main(void)
 	HAL_I2C_Master_Transmit( &hi2c1, EXPANDER_1_ADDR, tavolsag1_buff, 2, 0xFFFF );
 
 	HAL_Delay( 2 );
-
+*/
 	/*** VL53L1X Initialization ***/
-	VL53L1_WaitDeviceBooted( Dev );
+/*	VL53L1_WaitDeviceBooted( Dev );
 	VL53L1_DataInit( Dev );
 	VL53L1_StaticInit( Dev );
 	VL53L1_SetDistanceMode( Dev, VL53L1_DISTANCEMODE_LONG );
 	VL53L1_SetMeasurementTimingBudgetMicroSeconds( Dev, 50000 );
 	VL53L1_SetInterMeasurementPeriodMilliSeconds( Dev, 500 );
-	VL53L1_StartMeasurement( Dev );
+	VL53L1_StartMeasurement( Dev );*/
+	//HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
+
 
 	//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);	//LED felvilagitasa, kell a .ioc GPIO Output PA5-re
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
 	while (1) {
-		/*
-		HCSR04_1_Read();
-		HAL_Delay(1);*/
+		/*HCSR04_1_Read();
+		HAL_Delay(70);*/
 
 		/*if(uj_kapu == true && temp_radio == '\n') {
 			Kapukbol_iranyok();
@@ -714,12 +715,12 @@ int main(void)
 		HAL_UART_Transmit(&huart2, minta1, size, 100);// Sending in normal mode
 		HAL_Delay(1000);*/
 
-		VL53L1_WaitMeasurementDataReady( Dev );
+		/*VL53L1_WaitMeasurementDataReady( Dev );
 		VL53L1_GetRangingMeasurementData( Dev, &RangingData );
 		/*sprintf( (char*)buff, "%d, %d, %.2f, %.2f\n\r", RangingData.RangeStatus, RangingData.RangeMilliMeter,
 				 ( RangingData.SignalRateRtnMegaCps / 65536.0 ), RangingData.AmbientRateRtnMegaCps / 65336.0 );
-		HAL_UART_Transmit( &huart2, buff, strlen( (char*)buff ), 0xFFFF );*/
-		VL53L1_ClearInterruptAndStartMeasurement( Dev );
+		HAL_UART_Transmit( &huart2, buff, strlen( (char*)buff ), 0xFFFF );
+		VL53L1_ClearInterruptAndStartMeasurement( Dev );*/
 
 		if (btnEnable == 1) {
 			if (motvezEnable == 1) {
@@ -759,7 +760,7 @@ int main(void)
 					if(tolatas == true) {
 						motvez_k = 570;
 					} else {
-						motvez_k = 445;
+						motvez_k = 443;
 					}
 				}
 				//if (motvez_d /2 > motvez_k) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
