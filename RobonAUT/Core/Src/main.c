@@ -378,7 +378,7 @@ int bluetooth_i = 0;
 
 uint8_t kapuk[6] = { 'I', 'k'};
 uint8_t temp_radio = '?';
-bool letsGo = false;
+bool letsGo = true;
 uint8_t radio_i = 0;
 bool uj_kapu = false;
 
@@ -395,6 +395,8 @@ int target2 = -1;
 
 uint8_t timer_counter = 0;
 bool olvasok = false;
+
+bool lassitas = true;
 
 
 //Tavolsagszenzor I2C addresses of GPIO expanders on the X-NUCLEO-53L1A1
@@ -673,8 +675,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
 	while (1) {
-		/*HCSR04_1_Read();
-		HAL_Delay(100);*/
 
 		/*if(uj_kapu == true && temp_radio == '\n') {
 			Kapukbol_iranyok();
@@ -701,7 +701,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 		HCSR04_1_Read();
-		HAL_Delay(100);
+		HAL_Delay(1);
 
 		//uint8_t Test[] = "Hello World\r\n"; //Data to send
 		/*int size = sizeof(minta1);
@@ -714,6 +714,12 @@ int main(void)
 				 ( RangingData.SignalRateRtnMegaCps / 65536.0 ), RangingData.AmbientRateRtnMegaCps / 65336.0 );
 		HAL_UART_Transmit( &huart2, buff, strlen( (char*)buff ), 0xFFFF );
 		VL53L1_ClearInterruptAndStartMeasurement( Dev );*/
+
+		/*if(distance_tav1 < 100) {
+					lassitas = true;
+				} else {
+					lassitas = false;
+				}*/
 
 		if (btnEnable == 1) {
 			if (motvezEnable == 1) {
@@ -752,10 +758,15 @@ int main(void)
 				if(letsGo == true){
 					if(tolatas == true) {
 						motvez_k = 570;
+					} else if(distance_tav1 < 40){
+						motvez_k = motvez_d / 2;
+					} else if(40 < distance_tav1 && distance_tav1 < 70){
+						motvez_k = 465;
 					} else {
-						motvez_k = 443;
+						motvez_k = 455;
 					}
 				}
+				HAL_Delay(1000);
 				//if (motvez_d /2 > motvez_k) {							// motvez_d / 2 -nel nagyobb a hatramenet, pl. 900: gyors tolatás
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM1, motvez_k); 		// ha pwm1 nagyobb, hatramenet
 					DC_MOTOR_Set_Speed(DC_MOTOR_PWM2, motvez_d - motvez_k);
